@@ -3,7 +3,7 @@ layout: post
 title: "Generating domain-driven code"
 date: 2023-05-09 12:00:00 +01:00
 author: "Tomas Ekeli"
-permalink: 2020/05/generating-domain-driven-code/
+permalink: 2023/05/generating-domain-driven-code/
 categories: [code, domain-driven-design]
 ---
 
