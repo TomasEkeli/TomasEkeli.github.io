@@ -10,7 +10,9 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"kahole.magit"
+				"kahole.magit",
+				"ginfuru.ginfuru-vscode-jekyll-syntax",
+				"ginfuru.vscode-jekyll-snippets"
 			]
 		}
 	}
