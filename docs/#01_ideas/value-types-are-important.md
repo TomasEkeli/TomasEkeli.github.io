@@ -1,0 +1,1 @@
+make impossible states impossible to represent!

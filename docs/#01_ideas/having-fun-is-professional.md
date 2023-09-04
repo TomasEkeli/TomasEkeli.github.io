@@ -1,0 +1,1 @@
+when you're trying to do your best work - look out for when the fun is no longer there. it is unprofessional not to have fun
