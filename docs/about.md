@@ -8,7 +8,7 @@ This site is owned and operated by Tomas Ekeli. I am a software developer, and I
 
 ## About the site
 
-This site is 100% static files served by [GitHub Pages](https://pages.github.com/). The site is built using [Jekyll](https://jekyllrb.com/), and the source code is available on [GitHub](https://github.com/TomasEkeli/TomasEkeli.github.io/).
+This site is 100% static files served by [GitHub Pages](https://pages.github.com/). The site is built using [Jekyll](https://jekyllrb.com/), and the [source code](https://github.com/TomasEkeli/TomasEkeli.github.io/) is available on GitHub.
 
 There is no tracking on this site, and it does not collect your data, personal or otherwise. Well, I don't actually know that since I don't host it, but there is no tracking by me, and I have no interest in tracking you.
 
