@@ -21,17 +21,17 @@ First, we’ll create a [task](https://code.visualstudio.com/Docs/editor/tasks) 
 
 ```json
 {
-	"label": "build",
-	"command": "dotnet",
-	"type": "process",
-	"group": "build",
-	"args": [
-		"build",
-		"${workspaceFolder}/YourSolution.sln",
-		"/property:GenerateFullPaths=true",
-		"/consoleloggerparameters:NoSummary"
-	],
-	"problemMatcher": "$msCompile"
+  "label": "build",
+  "command": "dotnet",
+  "type": "process",
+  "group": "build",
+  "args": [
+    "build",
+    "${workspaceFolder}/YourSolution.sln",
+    "/property:GenerateFullPaths=true",
+    "/consoleloggerparameters:NoSummary"
+  ],
+  "problemMatcher": "$msCompile"
 }
 
 ```
@@ -46,40 +46,40 @@ Now let’s set up tasks to run our tests. We’ll start by creating a task to r
 
 ```json
 {
-	"label": "test",
-	"command": "dotnet",
-	"type": "process",
-	"group": "test",
-	"presentation": {
-		"reveal": "silent",
-		"panel": "dedicated",
-		"close": true,
-		"group": "tests",
-		"focus": false,
-		"clear": true,
-		"echo": false,
-		"revealProblems": "onProblem",
-		"showReuseMessage": false,
-	},
-	"args": [
-		"test",
-		"${workspaceFolder}/YourSolution.sln",
-		"--nologo",
-		"/property:GenerateFullPaths=true",
-		"/consoleloggerparameters:NoSummary"
-	],
-	"problemMatcher": {
-		"owner": "tests",
-		"fileLocation": "absolute",
-		"pattern": [
-			{
-				"regexp": "^\\s*at (?:[^.]+\\.)+([^()]+)\\(\\) in (.*):line (\\d+)$",
-				"message": 1,
-				"file": 2,
-				"line": 3,
-			}
-		]
-	}
+  "label": "test",
+  "command": "dotnet",
+  "type": "process",
+  "group": "test",
+  "presentation": {
+    "reveal": "silent",
+    "panel": "dedicated",
+    "close": true,
+    "group": "tests",
+    "focus": false,
+    "clear": true,
+    "echo": false,
+    "revealProblems": "onProblem",
+    "showReuseMessage": false,
+  },
+  "args": [
+    "test",
+    "${workspaceFolder}/YourSolution.sln",
+    "--nologo",
+    "/property:GenerateFullPaths=true",
+    "/consoleloggerparameters:NoSummary"
+  ],
+  "problemMatcher": {
+    "owner": "tests",
+    "fileLocation": "absolute",
+    "pattern": [
+      {
+        "regexp": "^\\s*at (?:[^.]+\\.)+([^()]+)\\(\\) in (.*):line (\\d+)$",
+        "message": 1,
+        "file": 2,
+        "line": 3,
+      }
+    ]
+  }
 }
 ```
 
@@ -97,45 +97,45 @@ Next, we’ll create tasks to watch individual test projects for changes and re-
 
 ```jsonc
 {
-	"label": "watch YourTestProject.Tests",
-	"command": "dotnet",
-	"type": "process",
-	"group": "test",
-	"presentation": {
-		"reveal": "silent",
-		"panel": "dedicated",
-		"close": true,
-		"group": "tests",
-		"focus": false,
-		"clear": true,
-		"echo": false,
-		"revealProblems": "onProblem",
-		"showReuseMessage": false,
-	},
-	"isBackground": true,
-	"options": {
-		"cwd": "${workspaceFolder}/Specifications/YourTestProject.Tests"
-	},
-	"args": [
-		"watch",
-		"test",
-		// maybe ignore integration tests or something
-	],
-	"problemMatcher": {
-		"owner": "Hosting.Tests",
-		"fileLocation": "absolute",
-		"pattern": {
-			"regexp": "^\\s*at (?:[^.]+\\.)+([^()]+)\\(\\) in (.*):line (\\d+)$",
-			"message": 1,
-			"file": 2,
-			"line": 3,
-		},
-		"background": {
-			"activeOnStart": true,
-			"beginsPattern": "Started",
-			"endsPattern": "Waiting for a file to change"
-		}
-	}
+  "label": "watch YourTestProject.Tests",
+  "command": "dotnet",
+  "type": "process",
+  "group": "test",
+  "presentation": {
+    "reveal": "silent",
+    "panel": "dedicated",
+    "close": true,
+    "group": "tests",
+    "focus": false,
+    "clear": true,
+    "echo": false,
+    "revealProblems": "onProblem",
+    "showReuseMessage": false,
+  },
+  "isBackground": true,
+  "options": {
+    "cwd": "${workspaceFolder}/Specifications/YourTestProject.Tests"
+  },
+  "args": [
+    "watch",
+    "test",
+    // maybe ignore integration tests or something
+  ],
+  "problemMatcher": {
+    "owner": "Hosting.Tests",
+    "fileLocation": "absolute",
+    "pattern": {
+      "regexp": "^\\s*at (?:[^.]+\\.)+([^()]+)\\(\\) in (.*):line (\\d+)$",
+      "message": 1,
+      "file": 2,
+      "line": 3,
+    },
+    "background": {
+      "activeOnStart": true,
+      "beginsPattern": "Started",
+      "endsPattern": "Waiting for a file to change"
+    }
+  }
 }
 ```
 
@@ -161,51 +161,51 @@ Alright, now let’s make our lives even easier by setting up a watch to run our
 
 ```jsonc
 {
-	"label": "Run YourProject",
-	"command": "dotnet",
-	"dependsOn": [
-		"maybe a docker compose or something?"
-	],
-	"group": "none",
-	"isBackground": true,
-	"detail": "Use this to run YourProject on http://localhost:YourPort",
-	"presentation": {
-		"echo": true,
-		"reveal": "always",
-		"focus": false,
-		"panel": "shared",
-		"showReuseMessage": true,
-		"clear": false
-	},
-	"type": "process",
-	"args": [
-		"watch",
-		"run",
-		"--configuration",
-		"LocalDev", // note this one
-		"--project",
-		"${workspaceFolder}/path/to/your/web.csproj"
-	],
-	"problemMatcher": {
-		"owner": "csharp",
-		"source": "msCompile",
-		"applyTo": "closedDocuments",
-		"fileLocation": "absolute",
-		"pattern": {
-			"regexp": "^(.*)\\((\\d+),(\\d+)\\):\\s+(error|warning|info)\\s+([A-Za-z0-9_]+)\\s*:\\s*(.*)$",
-			"file": 1,
-			"line": 2,
-			"column": 3,
-			"severity": 4,
-			"code": 5,
-			"message": 6
-		},
-		"background": {
-			"activeOnStart": true,
-			"beginsPattern": "^dotnet watch 🚀 Started$",
-			"endsPattern": "^(The build failed|Starting up)"
-		}
-	}
+  "label": "Run YourProject",
+  "command": "dotnet",
+  "dependsOn": [
+    // "maybe a docker compose or something?"
+  ],
+  "group": "none",
+  "isBackground": true,
+  "detail": "Use this to run YourProject on http://localhost:YourPort",
+  "presentation": {
+    "echo": true,
+    "reveal": "always",
+    "focus": false,
+    "panel": "shared",
+    "showReuseMessage": true,
+    "clear": false
+  },
+  "type": "process",
+  "args": [
+    "watch",
+    "run",
+    "--configuration",
+    "LocalDev", // note this one
+    "--project",
+    "${workspaceFolder}/path/to/your/web.csproj"
+  ],
+  "problemMatcher": {
+    "owner": "csharp",
+    "source": "msCompile",
+    "applyTo": "closedDocuments",
+    "fileLocation": "absolute",
+    "pattern": {
+      "regexp": "^(.*)\\((\\d+),(\\d+)\\):\\s+(error|warning|info)\\s+([A-Za-z0-9_]+)\\s*:\\s*(.*)$",
+      "file": 1,
+      "line": 2,
+      "column": 3,
+      "severity": 4,
+      "code": 5,
+      "message": 6
+    },
+    "background": {
+      "activeOnStart": true,
+      "beginsPattern": "^dotnet watch 🚀 Started$",
+      "endsPattern": "^(The build failed|Starting up)"
+    }
+  }
 }
 ```
 
@@ -228,18 +228,18 @@ Wrapping up, we can make our lives even more convenient by creating a task that 
   "label": "run all the watch tasks",
   //...
   "dependsOn": [
-	"watch YourTestProject1.Tests",
-	"watch YourTestProject2.Tests",
+    "watch YourTestProject1.Tests",
+    "watch YourTestProject2.Tests",
    ],
-	"presentation": {
-		"reveal": "never",
-		"focus": false,
-		"panel": "shared",
-		"showReuseMessage": false,
-		"clear": false
-	},
-	"type": "shell",
-	"problemMatcher": "$msCompile"
+  "presentation": {
+    "reveal": "never",
+    "focus": false,
+    "panel": "shared",
+    "showReuseMessage": false,
+    "clear": false
+  },
+  "type": "shell",
+  "problemMatcher": "$msCompile"
 }
 
 ```
@@ -258,16 +258,16 @@ It’s can be nice to clean your solution periodically, which helps maintain a c
 
 ```jsonc
 {
-	"label": "clean",
-	"command": "dotnet",
-	"type": "process",
-	"args": [
-		"clean",
-		"${workspaceFolder}/YourSolution.sln",
-		"-v",
-		"q"
-	],
-	"problemMatcher": "$msCompile"
+  "label": "clean",
+  "command": "dotnet",
+  "type": "process",
+  "args": [
+    "clean",
+    "${workspaceFolder}/YourSolution.sln",
+    "-v",
+    "q"
+  ],
+  "problemMatcher": "$msCompile"
 }
 ```
 

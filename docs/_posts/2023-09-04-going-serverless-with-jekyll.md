@@ -30,3 +30,5 @@ So, this is my first post on my new blog. I hope you enjoy it, and I hope you wi
 
 If you have any comments please reach out to me on any of the socials in the footer of this page. I'd love to hear from you.
 
+Addendum: [Daniel Schroeder](https://hachyderm.io/@deadlydog) reached out to me and pointed me to his very similar experience, which he worte about in his post [Migrating my blog from WordPress to Jekyll and GitHub Pages](https://blog.danskingdom.com/Migrating-my-blog-from-WordPress-to-Jekyll-and-GitHub-Pages/). It's a more thorough write-up, and he goes further in setting up a way to handle comments through pull-requests and adding analytics.
+

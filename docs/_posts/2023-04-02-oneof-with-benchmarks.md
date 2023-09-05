@@ -16,26 +16,26 @@ For example, instead of using exception-based flow (_which you **really** should
 ```csharp
 public bool ExceptionBased()
 {
-	try
-	{
-		DoSomethingExceptional();
-	}
-	catch (Exception)
-	{
-		return false;
-	}
-	return true;
+  try
+  {
+    DoSomethingExceptional();
+  }
+  catch (Exception)
+  {
+    return false;
+  }
+  return true;
 }
 
 int DoSomethingExceptional()
 {
-	var v = _random.Next(1);
+  var v = _random.Next(1);
 
-	if (v == 0)
-	{
-		throw new Exception();
-	}
-	return v;
+  if (v == 0)
+  {
+    throw new Exception();
+  }
+  return v;
 }
 ```
 
@@ -44,23 +44,23 @@ You would write something like this in our contrived example:
 ```csharp
 public bool OneOfBased()
 {
-	var result = DoSomethingOneOf();
+  var result = DoSomethingOneOf();
 
-	return result.Match(
-		success => true,
-		failure => false
-	);
+  return result.Match(
+    success => true,
+    failure => false
+  );
 }
 
 OneOf<int, Failure> DoSomethingOneOf()
 {
-	var v = _random.Next(1);
+  var v = _random.Next(1);
 
-	if (v == 0)
-	{
-		return new Failure();
-	}
-	return v;
+  if (v == 0)
+  {
+    return new Failure();
+  }
+  return v;
 }
 
 public record Failure();
