@@ -8,7 +8,7 @@ categories: [food]
 summary: "AI-made recipe for chicken pasta with spinach and sun-dried tomatoes"
 ---
 
-![Creamy chicken pasta with spinach and sun-dried tomatoes](/assets/img/2023-03-17-ai-chicken.jpg)
+![Creamy chicken pasta with spinach and sun-dried tomatoes](/assets/img/2023-03-17-ai-chicken.webp)
 
 My wife asked me to come up with something for dinner today, and the lack of inspiration lead me to ask [#ChatGPT](https://www.eke.li/tag/chatgpt/).
 

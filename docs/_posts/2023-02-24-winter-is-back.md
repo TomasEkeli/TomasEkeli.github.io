@@ -7,7 +7,7 @@ category: Observations
 author: Tomas Ekeli
 ---
 
-![A snowy landscape](/assets/img/2023-02-24-winter-is-back.jpg)
+![A snowy landscape](/assets/img/2023-02-24-winter-is-back.webp)
 
 We’ve had an uncommonly warm January and February here in northern Europe this year. Yesterday there was almost no snow left, and 5 degrees.
 

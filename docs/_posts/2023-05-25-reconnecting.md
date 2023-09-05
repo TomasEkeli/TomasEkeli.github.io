@@ -7,7 +7,7 @@ permalink: 2023/05/reconnecting/
 categories: [personal, retrocomputing, c64]
 ---
 
-![Commodore 64](/assets/img/2023-05-25-reconnecting.jpg)
+![Commodore 64](/assets/img/2023-05-25-reconnecting.webp)
 
 I was at the [NDC conference in Oslo](https://ndcoslo.com/) this week, and happened to meet up with an old colleague and friend of mine, John.
 

@@ -7,7 +7,7 @@ permalink: 2023/04/oneof-with-benchmarks/
 categories: [c#, dotnet, programming]
 ---
 
-![decision trees](/assets/img/2023-04-02-oneof-with-benchmarks.png)
+![decision trees](/assets/img/2023-04-02-oneof-with-benchmarks.webp)
 
 There’s a library called [OneOf](https://github.com/mcintyre321/OneOf) that gives something close to [discriminated unions](https://en.wikipedia.org/wiki/Tagged_union) in C# (like in for example [F#](https://fsharpforfunandprofit.com/posts/discriminated-unions/) and [TypeScript](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html?ref=hackernoon.com#discriminating-unions)). With it you can return a `OneOf` that wraps several return-types from your methods and handle them with some in-line lambdas.
 

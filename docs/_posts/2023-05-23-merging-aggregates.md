@@ -7,7 +7,7 @@ permalink: 2023/05/merging-aggregates/
 categories: [ddd, cqrs, event-sourcing, development, documentation]
 ---
 
-![Merging roots](/assets/img/2023-05-23-merging-aggregates.png)
+![Merging roots](/assets/img/2023-05-23-merging-aggregates.webp)
 
 As we learn and evolve our system we sometimes need to move the responsibilities of one aggregate-root into another.
 

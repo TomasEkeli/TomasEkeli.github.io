@@ -7,7 +7,7 @@ permalink: 2023/05/generating-domain-driven-code/
 categories: [code, domain-driven-design]
 ---
 
-![A black car in a very clean garage with two red doors](/assets/img/2023-05-09-generating-domin-driven-code.png)
+![A black car in a very clean garage with two red doors](/assets/img/2023-05-09-generating-domin-driven-code.webp)
 
 With the advent of large-language-models (LLMs) like Chat-GPT we can get some good help in getting started with our code. I like to use tools like this to get me going – then, with a base I can modify and evolve the code. It is somewhat like having a very knowledgeable, slightly distracted colleague help you.
 

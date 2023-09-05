@@ -7,7 +7,7 @@ author: Tomas Ekeli
 tags: [jekyll, wordpress, hosting, serverless, dns]
 summary: This blog is now powered by Jekyll
 excerpt: This blog is now powered by Jekyll
-main-image:  /assets/img/2023-09-04-going-serverless-with-jekyll.png
+main-image:  /assets/img/2023-09-04-going-serverless-with-jekyll.webp
 ---
 
 ![image]({{ page.main-image }})

@@ -7,7 +7,7 @@ permalink: 2023/03/devcontainers/
 categories: [devops, vscode]
 ---
 
-![Screenshot of vscode with a devcontainer active](/assets/img/2023-03-12-devcontainers-00.png)
+![Screenshot of vscode with a devcontainer active](/assets/img/2023-03-12-devcontainers-00.webp)
 
 In my daily work I code a lot on a quite a few different projects. Mostly in C# and TypeScript, and a bit of Go.
 
@@ -23,13 +23,13 @@ I’m not going to go through how devcontainers work under-the hood, but this is
 
 In your project you add a file `.devcontainer/devcontainer.json` that describes how you want your environment to be set up. I just use the wizard in vscode for this by launching the `>Add devcontainer files` -command.
 
-![Screenshot from vscode of the command-centre with the Add Dev Container Configuration Files -command](/assets/img/2023-03-12-devcontainers-01-add-devcontainer.png)
+![Screenshot from vscode of the command-centre with the Add Dev Container Configuration Files -command](/assets/img/2023-03-12-devcontainers-01-add-devcontainer.webp)
 
 The Add Dev Container Configuration Files -command in vscode
 
 This takes me through a few questions (what do I want in the devcontainer) and sets up the file.
 
-![screenshot of vscode add dev-container wizard with a search for node active - shows many options of node with and without extras](/assets/img/2023-03-12-devcontainers-02-select-configuration.png)
+![screenshot of vscode add dev-container wizard with a search for node active - shows many options of node with and without extras](/assets/img/2023-03-12-devcontainers-02-select-configuration.webp)
 
 searching for “node” as a starting-point
 
