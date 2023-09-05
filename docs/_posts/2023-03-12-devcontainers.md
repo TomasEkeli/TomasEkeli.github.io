@@ -5,9 +5,11 @@ author: Tomas Ekeli
 date: 2023-03-12 12:00:00 +01:00
 permalink: 2023/03/devcontainers/
 categories: [devops, vscode]
+excerpt: "How to use devcontainers in vscode to make your development environment repeatable and contained"
+main-image: /assets/img/2023-03-12-devcontainers-00.webp
 ---
 
-![Screenshot of vscode with a devcontainer active](/assets/img/2023-03-12-devcontainers-00.webp)
+![Screenshot of vscode with a devcontainer active]({{ page.main-image }})
 
 In my daily work I code a lot on a quite a few different projects. Mostly in C# and TypeScript, and a bit of Go.
 

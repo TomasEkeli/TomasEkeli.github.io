@@ -6,10 +6,12 @@ category: dev
 author: Tomas Ekeli
 permalink: 2023/03/vscode-tasks/
 tags: [vscode, dev, devex]
-summary: "Setting up tasks in vscode to get a smoother red-green-refactor cycle"
+excerpt: "Setting up tasks in vscode to get a smoother red-green-refactor cycle."
+main-image: /assets/img/2023-03-16-vscode-tasks.webp
+main-image-alt: "multicoloured cogs on a blue background"
 ---
 
-![multicoloured cogs on a blue background](/assets/img/2023-03-16-vscode-tasks.webp)
+![{{ page.main-image-alt }}]({{ page.main-image }})
 
 Tired of constantly switching between the terminal and your code editor while working on your .NET projects? I am. Today I’ll show you how to configure Visual Studio Code (VSCode) with .NET to run tests, watch for changes, and run ASP.NET Core projects.
 

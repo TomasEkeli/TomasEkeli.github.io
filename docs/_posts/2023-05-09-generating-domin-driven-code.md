@@ -5,9 +5,12 @@ date: 2023-05-09 12:00:00 +01:00
 author: "Tomas Ekeli"
 permalink: 2023/05/generating-domain-driven-code/
 categories: [code, domain-driven-design]
+excerpt: "Letting a large-language-model generate a domain in code"
+main-image: /assets/img/2023-05-09-generating-domin-driven-code.webp
+main-image-alt: "A black car in a very clean garage with two red doors"
 ---
 
-![A black car in a very clean garage with two red doors](/assets/img/2023-05-09-generating-domin-driven-code.webp)
+![{{ page.main-image-alt }}]({{ page.main-image }})
 
 With the advent of large-language-models (LLMs) like Chat-GPT we can get some good help in getting started with our code. I like to use tools like this to get me going – then, with a base I can modify and evolve the code. It is somewhat like having a very knowledgeable, slightly distracted colleague help you.
 

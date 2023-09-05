@@ -5,9 +5,12 @@ date: 2023-05-23 12:00:00 +01:00
 author: "Tomas Ekeli"
 permalink: 2023/05/merging-aggregates/
 categories: [ddd, cqrs, event-sourcing, development, documentation]
+excerpt: "As we learn and evolve our system we sometimes need to move the responsibilities of one aggregate-root into another. This article explains how to do that in a consistent, event-sourced manner."
+main-image: /assets/img/2023-05-23-merging-aggregates.webp
+main-image-alt: "Merging roots"
 ---
 
-![Merging roots](/assets/img/2023-05-23-merging-aggregates.webp)
+![{{ page.main-image-alt }}]({{ page.main-image }})
 
 As we learn and evolve our system we sometimes need to move the responsibilities of one aggregate-root into another.
 

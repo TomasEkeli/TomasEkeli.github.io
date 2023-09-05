@@ -5,10 +5,12 @@ date: 2023-03-17 12:00:00 +01:00
 author: "Tomas Ekeli"
 permalink: 2023/03/ai-chicken/
 categories: [food]
-summary: "AI-made recipe for chicken pasta with spinach and sun-dried tomatoes"
+excerpt: "AI-made recipe for chicken pasta with spinach and sun-dried tomatoes"
+main-image: /assets/img/2023-03-17-ai-chicken.webp
+main-image-alt: "A plate of creamy chicken pasta with spinach and sun-dried tomatoes"
 ---
 
-![Creamy chicken pasta with spinach and sun-dried tomatoes](/assets/img/2023-03-17-ai-chicken.webp)
+![{{ page.main-image-alt }}]({{ page.main-image }})
 
 My wife asked me to come up with something for dinner today, and the lack of inspiration lead me to ask [#ChatGPT](https://www.eke.li/tag/chatgpt/).
 

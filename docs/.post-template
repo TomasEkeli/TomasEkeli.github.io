@@ -1,9 +1,15 @@
 ---
-layout: post,
-title: This is a new article
+layout: post
+title: Title
 date: YYYY-MM-DD HH:MM
 category: Category
-author: User
+author: Tomas Ekeli
 tags: [tag1, tag2]
-summary: Summary of the article
+excerpt: Short summary for the listing of posts
+main-image: /assets/img/YYYY-MM-DD-Title/main-image.webp
+main-image-alt: Alt text for the main image
 ---
+
+![{{ page.main-image-alt }}]({{ page.main-image }})
+
+Start writing here...

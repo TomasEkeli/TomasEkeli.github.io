@@ -5,9 +5,11 @@ date: 2023-02-23 12:00:00 +01:00
 author: "Tomas Ekeli"
 permalink: 2023/02/domains-in-docs/
 categories: [meta, web, documentation]
+excerpt: "Do not use real domains or ip-adresses in your documentation!"
+main-image: /assets/img/2023-02-23-domains-in-docs.webp
+main-image-alt: "looking up towards booskshelves with books in a modern library with a glass roof"
 ---
-
-![documentation](/assets/img/2023-02-23-domains-in-docs.webp)
+![{{ page.main-image-alt }}]({{ page.main-image }})
 
 When writing technical documentation – do not use real URLs or IP -addresses. If you come up with your own or use some you’ve seen in other documentation they may lead to somewhere real. They may not yet, but maybe in the future.
 
