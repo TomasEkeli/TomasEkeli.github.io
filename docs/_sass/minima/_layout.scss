@@ -241,7 +241,7 @@
 
 .post-row {
   display: flex;
-  flex-flow: row;
+  flex-flow: row-reverse;
   gap: $spacing-unit;
 }
 
