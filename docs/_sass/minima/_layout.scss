@@ -217,7 +217,16 @@
   margin-left: 0;
   list-style: none;
 
+  // make the list items look a bit like cards with shadows
   > li {
+    border-top: solid 1px $border-color-02;
+    border-left: solid 1px $border-color-02;
+    border-bottom: solid 1px $border-color-01;
+    border-right: solid 1px $border-color-01;
+    box-shadow: 1ex 1ex 1ex -0.5ex $border-color-01;
+    border-radius: $spacing-unit * 0.125;
+    padding: $spacing-unit;
+    margin-top: $spacing-unit;
     margin-bottom: $spacing-unit;
   }
 }
@@ -230,6 +239,24 @@
 .post-link {
   display: block;
   @include relative-font-size(1.5);
+}
+
+.post-row {
+  display: flex;
+  flex-flow: row;
+  gap: $spacing-unit;
+}
+
+.post-title-and-excerpt {
+  display: flex;
+  flex-flow: column;
+  width: 100%;
+}
+
+.post-image {
+  display: block;
+  height: 30%;
+  width: 30%;
 }
 
 
@@ -295,8 +322,7 @@
     &:last-of-type { margin-right: 0 }
     a {
       display: block;
-      padding: 10px 12px;
-      border: 1px solid $border-color-01;
+      padding: 0.5ex 1ex;
       &:hover { border-color: $border-color-02 }
     }
   }
