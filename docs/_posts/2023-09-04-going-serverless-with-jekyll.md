@@ -6,7 +6,11 @@ category: meta
 author: Tomas Ekeli
 tags: [jekyll, wordpress, hosting, serverless, dns]
 summary: This blog is now powered by Jekyll
+excerpt: This blog is now powered by Jekyll
+main-image:  /assets/img/2023-09-04-going-serverless-with-jekyll.png
 ---
+
+![image]({{ page.main-image }})
 
 I set up my own site on my own domain (eke.li) back in [January of this year (2023)]({% post_url 2023-01-16-hello-world %}) I have made some blogs years ago on different platforms, but this time I had my own domain and set up my own node in [Linode](https://www.linode.com/). I chose [WordPress](https://wordpress.com) as my platform - it's big, well-known, and I had used it before.
 
