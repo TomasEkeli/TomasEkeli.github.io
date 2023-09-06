@@ -12,7 +12,9 @@
 			"extensions": [
 				"kahole.magit",
 				"ginfuru.ginfuru-vscode-jekyll-syntax",
-				"ginfuru.vscode-jekyll-snippets"
+				"ginfuru.vscode-jekyll-snippets",
+        "yzhang.markdown-all-in-one",
+        "streetsidesoftware.code-spell-checker"
 			]
 		}
 	}
