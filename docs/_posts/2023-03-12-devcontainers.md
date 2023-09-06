@@ -21,7 +21,7 @@ To the best of my knowledge only vscode and Visual Studio ([but maybe only for C
 
 ## How to do it?
 
-I’m not going to go through how devcontainers work under-the hood, but this is how to use it from vscode on a windows host.
+I'm not going to go through how devcontainers work under-the hood, but this is how to use it from vscode on a windows host.
 
 In your project you add a file `.devcontainer/devcontainer.json` that describes how you want your environment to be set up. I just use the wizard in vscode for this by launching the `>Add devcontainer files` -command.
 
@@ -79,9 +79,9 @@ I use this to re-create known good environments all the time, and to be able to 
 
 ## Features
 
-Once you’ve selected a starting devcontainer-definition you can add features to it. If your starting-definition is just Linux Alpine, but you want it to have e.g. Yarn you could add this here. There are many [features](https://containers.dev/features) already available, or you could make your own.
+Once you've selected a starting devcontainer-definition you can add features to it. If your starting-definition is just Linux Alpine, but you want it to have e.g. Yarn you could add this here. There are many [features](https://containers.dev/features) already available, or you could make your own.
 
-I usually write things that end up as docker-images, and also run several containers that my code depends on (runtimes, databases, etc). To do this without affecting my host-machine’s setup I like the [docker-in-docker](https://github.com/devcontainers/features/tree/main/src/docker-in-docker) -feature. With this I can run docker within the devcontainer and not have that conflict with whatever I’m running on my host-machine.
+I usually write things that end up as docker-images, and also run several containers that my code depends on (runtimes, databases, etc). To do this without affecting my host-machine's setup I like the [docker-in-docker](https://github.com/devcontainers/features/tree/main/src/docker-in-docker) -feature. With this I can run docker within the devcontainer and not have that conflict with whatever I'm running on my host-machine.
 
 Mostly I work with git-repositories hosted on GitHub, and the [command-line-interface tool](https://cli.github.com/) for that can be [included as a feature](https://github.com/devcontainers/features/tree/main/src/github-cli), very nice.
 
@@ -93,14 +93,14 @@ Here are a few tips if you want to try out running in devcontainers yourself (in
 
 ### Give WSL resources
 
-You’re going to be running (probably) a lot of things in docker through windows-subsystem-for-linux (WSL), and you probably want to [give it a bit of head-room](https://learn.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig). To do this you make a file in your user-profile directory called `.wslconfig` (or edit it if it’s already there):
+You're going to be running (probably) a lot of things in docker through windows-subsystem-for-linux (WSL), and you probably want to [give it a bit of head-room](https://learn.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig). To do this you make a file in your user-profile directory called `.wslconfig` (or edit it if it's already there):
 
 ```bash
 # on your windows-machine
 > notepad "$env:USERPROFILE\.wslconfig"
 ```
 
-By default WSL gets access to all your computer’s cores and half of its memory. In my experience that is too many cores and not enough memory. If you (like me) want to give your devcontainer access to 32GB of memory and 12 processor-cores the file, releasing memory back to the host when available – it can look like this:
+By default WSL gets access to all your computer's cores and half of its memory. In my experience that is too many cores and not enough memory. If you (like me) want to give your devcontainer access to 32GB of memory and 12 processor-cores the file, releasing memory back to the host when available – it can look like this:
 
 ```ini
 [wsl2]
@@ -111,7 +111,7 @@ pageReporting=true
 
 ### Use git credentials
 
-You probably already have your git ssh-keys set up on your host-machine, and don’t want to go through that every time you re-build a devcontainer. To have your devcontainer “inherit” the credentials from your host-machine you need to set up a service in windows that it can access. **Note: this is for accessing git through https, not the git-protocol**.
+You probably already have your git ssh-keys set up on your host-machine, and don't want to go through that every time you re-build a devcontainer. To have your devcontainer “inherit” the credentials from your host-machine you need to set up a service in windows that it can access. **Note: this is for accessing git through https, not the git-protocol**.
 
 ```bash
 # on your windows host-machine
@@ -134,9 +134,9 @@ $ git config --global user.email your.email@example.com
 $ git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager-core.exe"
 ```
 
-### Make sure you’re on
+### Make sure you're on
 
-Sometimes WSL just isn’t able to reach the internet (where you will clone the git-repo from, pull down docker-images and dependencies from and push code-changes to). It doesn’t happen often, only on some machines, but I usually go into WSL to check it by running `curl` against some known hostname. If I get an error, it’s been enough for me to edit the name-server.
+Sometimes WSL just isn't able to reach the internet (where you will clone the git-repo from, pull down docker-images and dependencies from and push code-changes to). It doesn't happen often, only on some machines, but I usually go into WSL to check it by running `curl` against some known hostname. If I get an error, it's been enough for me to edit the name-server.
 
 ```bash
 # in wsl
@@ -149,7 +149,7 @@ $ sudo nano /etc/resolve.conf
 
 ### Starting development
 
-To actually start development I usually just open vscode to a recent project, but if you haven’t yet downloaded the project, or it’s slipped out of your recents:
+To actually start development I usually just open vscode to a recent project, but if you haven't yet downloaded the project, or it's slipped out of your list of recent projects:
 
 ```bash
 # on your windows host-machine
@@ -166,11 +166,11 @@ This opens code at the path in WSL, which discovers the `.devcontainer/devcontai
 
 ## Pro et contra
 
-The downsides are that it does take a little time getting used to, and you are losing some performance by running in a container instead of directly on your host-machine. If you try to run the containers bound against a windows file-system (i.e. skip the launching-from-wsl -part) your experience will be very slow, as the windows files and linux files don’t work the same way.
+The downsides are that it does take a little time getting used to, and you are losing some performance by running in a container instead of directly on your host-machine. If you try to run the containers bound against a windows file-system (i.e. skip the launching-from-wsl -part) your experience will be very slow, as the windows files and linux files don't work the same way.
 
-Upsides are that your environment is very contained, and re-creatable. It is easier to bring new developers into a working environment (no spending days getting them up and running) and you will no longer have developers with “special” setups that plain don’t work (or even worse – are the only ones that can compile some things).
+Upsides are that your environment is very contained, and re-creatable. It is easier to bring new developers into a working environment (no spending days getting them up and running) and you will no longer have developers with “special” setups that plain don't work (or even worse – are the only ones that can compile some things).
 
-I have gotten into the habit of re-building my environment at least weekly to make sure I don’t have a particular, special setup. If I find myself re-installing tools or extensions after every re-build I promote those to the setup in the `devcontainers.json` -file (or a script it calls), so it is repeatable.
+I have gotten into the habit of re-building my environment at least weekly to make sure I don't have a particular, special setup. If I find myself re-installing tools or extensions after every re-build I promote those to the setup in the `devcontainers.json` -file (or a script it calls), so it is repeatable.
 
 If you find yourself with a setup that takes a long time to re-create because you install many things, or a setup that becomes unacceptably varied because you do things like call on apt-get to install things during creation: you might want to build your development-machine once and push that as a container-image that everyone can go from. This makes your setup _even more_ repeatable.
 
