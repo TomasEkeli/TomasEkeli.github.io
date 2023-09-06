@@ -27,9 +27,10 @@ layout: base
       <li>
         <div class="post-row">
           {% if post.main-image %}
-          <img src="{{ post.main-image }}"
-          alt="{{ post.main-image-alt | escape }}"
-          class="post-image">
+          <a href="{{ post.url | relative_url }}" class="post-image">
+            <img src="{{ post.main-image }}"
+              alt="{{ post.main-image-alt | escape }}"/>
+          </a>
           {% endif %}
           <div class="post-title-and-excerpt">
             <span class="post-meta">{{ post.date | date: date_format }}</span>

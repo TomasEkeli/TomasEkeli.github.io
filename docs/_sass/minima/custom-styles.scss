@@ -8,10 +8,8 @@ div.grid-container {
   margin: 0 auto;
   max-width: 1000px;
   padding: 0 1em;
-  // outline: solid 1px chartreuse;
 
   > .grid-cell {
-    // outline: solid 1px red;
     width: 150px;
     padding-top: $spacing-unit;
   }

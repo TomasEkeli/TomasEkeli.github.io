@@ -242,19 +242,18 @@
 .post-row {
   display: flex;
   flex-flow: row-reverse;
+  align-items: center;
   gap: $spacing-unit;
-}
-
-.post-title-and-excerpt {
-  display: flex;
-  flex-flow: column;
-  width: 100%;
-}
-
-.post-image {
-  display: block;
-  height: 30%;
-  width: 30%;
+  >  .post-title-and-excerpt {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+  }
+  > .post-image {
+    display: block;
+    height: 30%;
+    width: 30%;
+  }
 }
 
 
