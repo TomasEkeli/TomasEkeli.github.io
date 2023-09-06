@@ -5,9 +5,9 @@ date: 2023-02-23 12:00:00 +01:00
 author: "Tomas Ekeli"
 permalink: 2023/02/domains-in-docs/
 categories: [meta, web, documentation]
-excerpt: "Do not use real domains or ip-adresses in your documentation!"
+excerpt: "Do not use real domains or ip-addresses in your documentation!"
 main-image: /assets/img/2023-02-23-domains-in-docs.webp
-main-image-alt: "looking up towards booskshelves with books in a modern library with a glass roof"
+main-image-alt: "looking up towards bookshelves with books in a modern library with a glass roof"
 ---
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
@@ -48,9 +48,9 @@ This is why we also have reserved ranges of IP -addresses. These will not go any
 - `TEST-NET-2: 198.51.100.0/24`
 - `TEST-NET-3: 203.0.113.0/24`
 
-That “`/24`” is [CIDR-notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation) and it means that all values after the last period are included – so all IP -adresses from `192.0.2.1` to `192.0.2.255` are included in `192.0.2.0/24`
+That “`/24`” is [CIDR-notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation) and it means that all values after the last period are included – so all IP -addresses from `192.0.2.1` to `192.0.2.255` are included in `192.0.2.0/24`
 
-There’s also IP6, right – and there we also have a [reserved block of IP -adresses](https://www.rfc-editor.org/rfc/rfc3849). And it is **big**! All IP6 adresses that start with 2008:bd8…. are documentation-adresses. That’s a range of 2^96 adresses, should be enough for most uses.
+There’s also IP6, right – and there we also have a [reserved block of IP -addresses](https://www.rfc-editor.org/rfc/rfc3849). And it is **big**! All IP6 addresses that start with 2008:bd8…. are documentation-addresses. That’s a range of 2^96 addresses, should be enough for most uses.
 
 ## Summary
 
@@ -59,7 +59,7 @@ There’s also IP6, right – and there we also have a [reserved block of IP -ad
     - `.test`
     - `.example`
     - `.invalid`
-    - `.locahost`
+    - `.localhost`
 - Use safe IP -addresses in your documentation
     - `192.0.2.0/24`
     - `198.51.100.0/24`
