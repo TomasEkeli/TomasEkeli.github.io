@@ -4,7 +4,7 @@ title: "Reconnecting"
 date: 2023-05-25 12:00:00 +01:00
 author: "Tomas Ekeli"
 permalink: 2023/05/reconnecting/
-categories: [personal, retrocomputing, c64]
+categories: [personal, retro-computing, c64]
 excerpt: "I met an old friend and colleague at a conference, and we talked about old computers. I am now intrigued and slightly intimidated!"
 main-image: /assets/img/2023-05-25-reconnecting.webp
 main-image-alt: "A Commodore 64"

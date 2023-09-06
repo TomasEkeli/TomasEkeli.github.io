@@ -6,7 +6,7 @@ author: "Tomas Ekeli"
 permalink: 2023/05/generating-domain-driven-code/
 categories: [code, domain-driven-design]
 excerpt: "Letting a large-language-model generate a domain in code"
-main-image: /assets/img/2023-05-09-generating-domin-driven-code.webp
+main-image: /assets/img/2023-05-09-generating-domain-driven-code.webp
 main-image-alt: "A black car in a very clean garage with two red doors"
 ---
 
@@ -414,7 +414,7 @@ public class Garage : AggregateRoot
 }
 ```
 
-> **ChatGPT:** Now the `Garageaggregate` root can register employees with their shift dates, start times, and end times. `TheValidateEmployeeWorkHours` method checks if the employee work hours constraints are satisfied before registering the employee for a shift.
+> **ChatGPT:** Now the `GarageAggregate` root can register employees with their shift dates, start times, and end times. `TheValidateEmployeeWorkHours` method checks if the employee work hours constraints are satisfied before registering the employee for a shift.
 >
 > Next, we’ll update the ScheduleAppointment method to ensure the employee is not booked for two cars at the same time, and each car is assumed to take two hours. We’ll also add a half-an-hour grace period at the end of every appointment.
 
