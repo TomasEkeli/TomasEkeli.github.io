@@ -1,2 +1,18 @@
 // Placeholder to allow defining custom styles that override everything else.
 // (Use `_sass/minima/custom-variables.scss` to override variable defaults)
+
+div.grid-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1000px;
+  padding: 0 1em;
+  // outline: solid 1px chartreuse;
+
+  > .grid-cell {
+    // outline: solid 1px red;
+    width: 220px;
+    padding-top: $spacing-unit;
+  }
+}
