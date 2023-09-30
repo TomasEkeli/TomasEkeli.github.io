@@ -1,6 +1,6 @@
 # Thoughs and stuff
 
-The "Thoughts and stuff" -blog, running as [Jekyll](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/creating-a-github-pages-site-with-jekyll)
+The [Thoughts and stuff](https://www.eke.li) -blog, running as [Jekyll](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/creating-a-github-pages-site-with-jekyll) with automatic deployment from GitHub to GitHub Pages.
 
 ## Localdev
 
