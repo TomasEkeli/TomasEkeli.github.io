@@ -18,7 +18,7 @@ Much has been written about [microservices](https://en.wikipedia.org/wiki/Micros
 
 Microservices are a way of structuring a system into smaller parts. The idea is that each part is small enough to be managed by a small team, and that the parts can be developed and deployed independently of each other.
 
-I've heard them defined in many ways - are they a services that does "just one thing", or a service that is "so small that it makes more sense to re-write it than change it"? Are they perhaps a service that is so small that it is easily replaced by a third-party service? Where is the line between a micro- and a nano-service?
+I've heard them defined in many ways - are they a service that does "just one thing", or a service that is "so small that it makes more sense to re-write it than change it"? Are they perhaps a service that is so small that it is easily replaced by a third-party service? Where is the line between a micro- and a nano-service?
 
 The exact definition does not really matter, the point is that the general move towards smaller services may be beneficial.
 
@@ -33,7 +33,7 @@ Instead we have teams of people, and we have deadlines. We have to make compromi
 > Any organization that designs a system (defined broadly) will produce a design whose structure is a copy of the organization's communication structure.
 > - [Melvin Conway](https://en.wikipedia.org/wiki/Conway%27s_law)
 
-This is a well-known law in software development, oft quoted to explain why systems end up the way they do. It is also used to explain why microservices may be good idea.
+This is a well-known law in software development, oft quoted to explain why systems end up the way they do. It is also used to explain why microservices may be a good idea.
 
 When we add more people (of various skill-levels) to a project we need to make sure that they can work together. They must be able to work independently on different parts of the system without stepping on each other's toes. Thus, we create smaller areas within our system that each group of people work on. We call these areas "modules", or "components", or "services".
 
@@ -94,12 +94,12 @@ With separate services your developers can work without worrying about stepping 
 ### Independent deployment
 If you have a large system with many teams working you want to make sure that the teams can deploy their changes independently. Instead of defining [release trains](https://en.wikipedia.org/wiki/Software_release_train) and having to coordinate deployment of the entire system you can deploy each service at its own cadence. Splitting into services  gives you the ability to deploy changes to parts of the system, while it is under load.
 
-To be able to deploy independently you need to have a mature dev-ops organization and and deal with several versions of the same service running at the same time. [Blue/Green deployments](https://martinfowler.com/bliki/BlueGreenDeployment.html) and [canary deployments](https://martinfowler.com/bliki/CanaryRelease.html) are techniques that can help with this.
+To be able to deploy independently you need to have a mature dev-ops organization and deal with several versions of the same service running at the same time. [Blue/Green deployments](https://martinfowler.com/bliki/BlueGreenDeployment.html) and [canary deployments](https://martinfowler.com/bliki/CanaryRelease.html) are techniques that can help with this.
 
 ### Independent technology
 Developers have different skills and interests. To attract and keep people on your team it may be important to be flexible in your tech-stack. Some domains are better suited to particular technologies. In a monolith all teams must work with the same technologies, regardless of interests or domains.
 
-By splitting up the system into smaller services each team can gain some leeway in choosing their stack. This means that you can have a team working with Java, another with C#, and yet another with Python and one with PHP. The choice of technology becomes another dimension you can vary. You can also have services that use latest version of a technology, side by side with an services on older versions.
+By splitting up the system into smaller services each team can gain some leeway in choosing their stack. This means that you can have a team working with Java, another with C#, and yet another with Python and one with PHP. The choice of technology becomes another dimension you can vary. You can also have services that use latest version of a technology, side by side with services on older versions.
 
 A point of caution here: do not use *too* many different technologies in your system. I recommend having small set of technologies that you can support and maintain. Remember that your organization will probably have to support the deliveries for some time.
 
@@ -108,10 +108,10 @@ This also gives a smaller set of technologies that you need to hire for, and mak
 ### Independent data
 A service with its own data-storage is a natural boundary for data. With a monolith you the entire system must adhere to the strictest requirements. With separate services you can have different services adhere to different requirements.
 
-You gain control over which data resides where, and can separate by requirements. This means that you can have services that may store financial or personal data, and services that may not. You can separate data-storage by regions for different services. Some services can to store data on-premises, while guaranteeing that some are off-premises.
+You gain control over which data resides where, and can separate by requirements. This means that you can have services that may store financial or personal data, and services that may not. You can separate data-storage by regions for different services. Some services can store data on-premises, while guaranteeing that some are off-premises.
 
 ### Independent scaling
-If you have a separate services you can scale parts of the system independently. With a monolith you need to scale the entire system, even if only a small part of it is under load. In my experience such monolithic systems sometimes even need to be single instances. Scaling such systems is nigh impossible.
+If you have a separate services you can scale parts of the system independently. With a monolith you need to scale the entire system, even if only a small part of it is under load. In my experience such monolithic systems sometimes even require that there be only a single running instance! Scaling such systems is nigh impossible.
 
 With separate services you scale the services under load without having to scale the entire system. Conversely you can also restrict services that are particularly expensive or resource-hungry if needed. You gain flexibility in how you use your resources that a monolith cannot provide.
 
@@ -128,7 +128,7 @@ It is common to have different requirements for different parts of your system. 
 ### Easier to understand
 As your system grows and evolves it takes on new responsibilities and new features and new developers. Over time it tends to grow harder to understand, and harder to change. By splitting up the system into smaller, simpler services we can ensure that each service is more understandable. Our goal is that each service is small enough to fit in the head of a single person, which is obviously not possible with a large monolith.
 
-### Repleaceability
+### Replaceability
 With a system of services that interact in well-known and well-defined ways you can replace parts of that system. And, you can do so while keeping the rest of the system intact. This means that you can replace a service with a new implementation or a third-party service.
 
 This requires that you have well-defined interfaces and protocols of interaction. You also need some way of routing information between your services. This routing system then gives you the ability to replace a service with another.
@@ -136,9 +136,9 @@ This requires that you have well-defined interfaces and protocols of interaction
 When introducing smaller services we use the [strangler pattern](https://www.redhat.com/architect/pros-and-cons-strangler-architecture-pattern). It is a powerful pattern that lets you gradually replace parts of a system with new parts. Even after you've moved to separate services you will use your data-routing -system to route information to the new service instead of the old one.
 
 ### Team topology
-This is a bit of a meta-reason, but it is an important one. By splitting up your team into smaller teams also split system into smaller services. You can use your team-structure as a blueprint for your system architecture. In fact, your system architecture cannot help but reflect your team structure.
+This is a bit of a meta-reason, but it is an important one. By splitting up your team into smaller teams you also split system into smaller services. You can use your team-structure as a blueprint for your system architecture. In fact, your system architecture cannot help but reflect your team structure.
 
-Separating services from a monolith is done by setting up teams that reflect the services you want. This is a good thing, but it is also a hard thing. It is hard to know what the right team-topology is, and it may become hard to change the team-topology once it is set up. You may also need to set up supporting teams, for larger organizations.
+Separating services from a monolith is done by setting up teams that reflect the services you want. This is a good thing, but it is also challenging. It is hard to know what the right team-topology is, and it may become hard to change the team-topology once it is set up. You may also need to set up supporting teams, for larger organizations.
 
 Setting up different teams and deciding how to split up the system is the job of the "architects" and technical leaders. They work together to transform the organization while keeping the system running.
 
@@ -149,7 +149,7 @@ As with most things in software development the answer is "it depends". There ar
 
 My recommendation is to start out with a monolithic delivery, and keep it that way for as long as possible. This will let you focus on the business-problem you are trying to solve. Spend less time on the technical problems of splitting up a system into smaller services.
 
-When you have need that that leads you to split it up you will should have an understanding of the system and the domain. You will also need to understand the team-topology that you need to support the system. What changes do you need to initiate within the team-structure?
+When you have need that leads you to split it up you will should have an understanding of the system and the domain. You will also need to understand the team-topology that you need to support the system. What changes do you need to initiate within the team-structure?
 
  Look at your domain and your requirements and decide on what to split out and when based on that. Maybe budding off just a few services is enough?
 
@@ -162,22 +162,22 @@ When splitting out smaller services - use the [strangler pattern](https://www.re
 ### Not yet, but maybe soon?
 If  you are still in a monolith: consider patterns of interaction that will make it possible to split out services later.
 
-In particular, if you are producing a service that communicates over http, use a [hypermedia](https://en.wikipedia.org/wiki/HATEOAS) -based approach. This lets you change the implementation without having affecting clients of the service.
+In particular, if you are producing a service that communicates over http, use a [hypermedia](https://en.wikipedia.org/wiki/HATEOAS) -based approach. This lets you change the implementation without affecting clients of the service.
 
 If you are using GraphQL: look into schema-stitching to give you the ability to gradually replace parts. This is a powerful technique that will let you change the implementation. Keep your clients working while changing the system!
 
-If none of these techniques fit you need a gatekeeper. Once that is in place you use it to route information into and out of your system. This lets you change the implementation of a service, again without having to change the clients of the service.
+If none of these techniques fit, you need a gatekeeper. Once that is in place you use it to route information into and out of your system. This lets you change the implementation of a service, again without having to change the clients of the service.
 
 If your interactions with the surrounding world are not over http you want look into using a message-bus to route messages into and out of your monolith.
 
 ## Conclusion and recommendations
 
-Microservices are a powerful architectural pattern, but they are not a silver bullet. They can help with some issues, but they come at a high cost. With a service-based architecture you will have to deal with the issues of distributed systems. Insight into what the system does becomes a lot harder to gain.
+Microservices are a powerful architectural pattern, but they are not a silver bullet. They can help with some issues, but they come at a high cost. With a service-based architecture you will have to deal with the issues of distributed systems. Gaining insight into what the system does becomes a lot more challenging.
 
 First evaluate whether your organization requires and can support a move to separate services. If you have runtime-requirements (like security, data-retention, legal or premises) that are hard to meet with a monolith - that may be a good reason to split it up.
 
-Going into a multi-service architecture is a large change, and you will need to use tools to help you. Introduce standards around operational aspects like logging, security, monitoring, resiliency and deployment as early as possible. Use [open-telemetry](https://opentelemetry.io/docs/what-is-opentelemetry/), and trace processes across services. Think about how you will handle a potentially large set of services - do you need a developer portal? How will you handle service-discovery? How will you make sure all the services conform to your standards?
+Going into a multi-service architecture is a large change, and you will need to use tools to help you. Introduce standards around operational aspects like logging, security, monitoring, resiliency and deployment as early as possible. Use [open-telemetry](https://opentelemetry.io/docs/what-is-opentelemetry/), and trace processes across services. Think about how you will handle a potentially large set of services. Do you need a developer portal? How will you handle service-discovery? How will you make sure all the services conform to your standards?
 
-I strongly recommend using a message-queue to route messages within your system, and prohibiting direct calls between services. This will let you change the implementation of a service without having to change the clients of the service. It also lets you pick up failing processes and save data. Do not EVER allow two different services to access the same database - down that path lies madness!
+I strongly recommend using a message-queue to route messages within your system, and prohibiting direct calls between services. This will let you change the implementation of a service without having to change the clients of the service. It also lets you pick up failing processes and save data. *Never* allow two different services to access the same database - down that path lies madness!
 
 Be sure to treat a move from monolith to multi-service with care and respect. This is a major architectural change that will affect your system and your organization for years to come. Make sure that you have the support of the leadership and development team.
