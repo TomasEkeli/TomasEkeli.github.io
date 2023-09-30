@@ -145,11 +145,11 @@ You will also need to understand the technical challenges of splitting up a syst
 
 Splitting out services may be a viable way of getting away from difficult requirements. Split out services that have different requirements than the rest of the system. This is also a way of getting away from a difficult technology or deployment-environment.
 
-When splitting out smaller services - use the (strangler pattern)[https://www.redhat.com/architect/pros-and-cons-strangler-architecture-pattern]. This lets you replace parts of a system with new parts, while it keeps running.
+When splitting out smaller services - use the [strangler pattern](https://www.redhat.com/architect/pros-and-cons-strangler-architecture-pattern). This lets you replace parts of a system with new parts, while it keeps running.
 
 If  you are still in a monolith: consider patterns of interaction that will make it possible to split out services later.
 
-In particular, if you are producing a service that communicates over http, use a (hypermedia)[https://en.wikipedia.org/wiki/HATEOAS] -based approach. This lets you change the implementation without having affecting clients of the service.
+In particular, if you are producing a service that communicates over http, use a [hypermedia](https://en.wikipedia.org/wiki/HATEOAS) -based approach. This lets you change the implementation without having affecting clients of the service.
 
 If you are using GraphQL: look into schema-stitching to give you the ability to gradually replace parts. This is a powerful technique that will let you change the implementation. Keep your clients working while changing the system!
 
