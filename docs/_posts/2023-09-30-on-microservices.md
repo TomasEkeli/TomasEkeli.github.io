@@ -12,7 +12,7 @@ main-image-alt: A split monolith with a smaller statue in front of it
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
-Much has been written about [microservices](https://en.wikipedia.org/wiki/Microservices) as an architectural pattern. I have worked with them for a many years, and I have thoughts on when they make sense and the consequences of using them.
+Much has been written about [microservices](https://en.wikipedia.org/wiki/Microservices) as an architectural pattern. I have worked with them for a many years, and have thoughts on when they make sense and the consequences of using them.
 
 ## What are microservices?
 
@@ -24,51 +24,58 @@ The exact definition does not really matter, the point is that the general move 
 
 ## How do we build large systems?
 
-The most efficient way of creating a software system is for one extremely competent person to create the entire system as one deployable unit. The entire system is made by one genius who understands the whole system and domain and can make all the right decisions.
+The most efficient way of creating a software system would be for one extremely competent person to create the entire system as one deployable unit. An entire system made by one genius who understands the whole system and domain and can make all the right decisions.
 
-This also means that any large system that would take, say, 15 person-years to create would take 15 years to create, and occupy one genius for those 15 years. In reality we do not make systems like this. We don't have geniuses, and we don't have 15 years to make them.
+Doing this would mean that a large system that requires 15 person-years to create would take 15 actual years to create. Creating it would occupy one genius for those 15 years. In reality we do not make systems like this. We don't have geniuses, and we don't have 15 years to make them.
 
-Instead we have teams of people, and we have deadlines. We have to make compromises, and we have to make sure that the system we make is maintainable. We have to make sure that the system can be changed as the world changes around it.
+Instead we have teams of people, and we have deadlines. We have to make compromises, and we have to make sure that the system we make is maintainable. We have to make sure that the system can change as the world changes around it.
 
 > Any organization that designs a system (defined broadly) will produce a design whose structure is a copy of the organization's communication structure.
 > - [Melvin Conway](https://en.wikipedia.org/wiki/Conway%27s_law)
 
-This is a well-known law in software development, and it is often used to explain why systems end up the way they do. It is also used to explain why microservices may be good idea.
+This is a well-known law in software development, oft quoted to explain why systems end up the way they do. It is also used to explain why microservices may be good idea.
 
-When we add more people (of various skill-levels) to a project we need to make sure that they can work together. We need to make sure that they can work independently, and that they can work on different parts of the system without stepping on each other's toes. Thus we create smaller areas within our system that each group of people work on, and we call those areas "modules", or "components", or "services".
+When we add more people (of various skill-levels) to a project we need to make sure that they can work together. They must be able to work independently on different parts of the system without stepping on each other's toes. Thus, we create smaller areas within our system that each group of people work on. We call these areas "modules", or "components", or "services".
 
-It becomes easier to work in such a system when we are strict about how each such module works with other modules, the defined interfaces between them. We can then make sure that each module is responsible for a small part of the system, and that it does not have to know about the rest of the system.
+It is easier to work in such a system when we are strict about how the modules interact, the defined interfaces between them. We can then make sure that each module owns a small part of the system, and that it does not need to know about the rest of the system.
 
-As long as we keep all of these modules together in the same code-base we call this a "monolith". This is the default way of creating software, and it works well for many systems. In fact, I recommend that all systems at the very least start out as a monolith.
+As long as we keep all these modules together in the same code-base we call this a "monolith". This is the default way of creating software, and it works well for many systems. In fact, I recommend that all systems start out as a monolith.
 
 ## Why keep the monolith?
 
-There are many reasons to building and keeping a system as a monolith for as long as possible.
+There are good reasons to create and maintain a system as a monolith for as long as possible. Please consider these when deciding whether to split up your system into smaller services.
 
 ### One unit
-With a monolith all of the code in the system lives in the same deployable unit, and usually also in the same code-base. This makes it easier for the developers to find, read and (hopefully) understand the code. It also makes it easier to change the code, as you can change the code in one place and be sure that it will affect the entire system.
+With a monolith all the code lives in the same deployable unit, usually in the same code-base. It is simpler for the developers to find, read and (hopefully) understand the code. This makes it easier to change the code, as you can change the code in one place and be sure your change affects the entire system.
 
 ### Version consistency
-Since all the code is deployed as a single unit you can also be sure that the code you are deploying and running is the exact same code as the one you have interacted with during development, testing and acceptance. There should be no surprises when you deploy a single unit.
+Since all the code deploys as a single unit you are sure of what code you are running. Your server runs the exact same code as the one you developed, tested and accepted. Any differences are only because of configurations and such. There should be no surprises when you deploy a single unit.
 
 ### Technological consistency
-Usually a monolith is also a single tech-stack, as in all the code is in the same language and uses the same libraries. This makes it easier to find people who can work on the system, and it makes it easier to move people around within the system.
+Usually a monolith is a single tech-stack, as in all the code is in the same language and uses the same libraries. This can make it easier to find people who can work on the system, and it makes it easier to move people around within the system. If everyone knows Java and everything is Java they can work on everything.
 
 ### Easier to debug
-When an error is detected you will have one solution to blame and to trace the error to. This is easily overlooked as a major benefit, but it is a big one. To be able to trace a logged error to a single line of code and be sure that that is the only place where the error can be is a huge benefit.
+When you detect an error you have one solution to blame and to trace the error to. This is often overlooked as a major benefit, but it is a big one. The ability to trace a logged error to a single line of code and be sure that it is the only place where the error can be is a huge boon.
 
 ### Faster to run
-Since everything usually runs in one (logical) process with a monolith they are also quicker to run. A multi-service architecture will inevitably have some overhead in communication between the services, and this will slow down the entire system.
+Since everything usually runs in one (logical) process with a monolith they are also quicker to run. Any multi-service architecture has some overhead in communication between the services. This will slow down the entire system.
 
 ### Less code
-In a multi-service architecture you will also need to implement logic around the interactions between services - to handle timeouts, down-time, errors, retries, etc. This is code that you will have to write and maintain, and it is code that will not add any value to the business. If you are not careful and employ patterns like [circuit-breakers](https://martinfowler.com/bliki/CircuitBreaker.html) and [event-driven architectures](https://martinfowler.com/articles/201701-event-driven.html) you will also create a system that at best as resilient and reliable as the least reliable service in your system.
+In a multi-service architecture you must create logic around the interactions between services. You must handle timeouts, down-time, errors, retries, etc. This is difficult code to get right that you will have to write and maintain, and it is code that does not add direct value to the business.
+
+If you are not careful and use patterns like [circuit-breakers](https://martinfowler.com/bliki/CircuitBreaker.html) and [event-driven architectures](https://martinfowler.com/articles/201701-event-driven.html) your system will, at best, be as resilient and reliable as the least reliable service in your system.
 
 ### Easier to deploy
-Since a monolith is a single deployable unit it is also (usually) easier to deploy. You can deploy the entire system at once, and you can be sure that the entire system is deployed. You can also be sure that the entire system is running the same version of the code.
+Since a monolith is a single deployable unit it is also (usually) easier to deploy. You can deploy the entire system at once, and you can be sure that the entire system acts as a unit. You can also be sure that the entire system is running the same version of the code.
 
 ## Why split up?
 
 Splitting up to smaller services carries with it a whole host of benefits. We know that people are inherently bad at creating, understanding, maintaining and changing large systems. Smaller services takes this premise seriously, in essence saying "if creating large systems is hard - let's create smaller systems".
+
+### Fewer spooky bugs at a distance
+Working in a monolith can be scary, as changes to one part of the system may "bubble up" as strange bugs in seemingly unrelated parts of the monolith. This is because the entire system is running in the same process, and a bug in one part of the system may affect another part of the system.
+
+Shared global writeable state and unclear patterns of interaction between the different parts of the system are usually the culprits here. By enforcing interfaces between the services and not sharing state (they are in different processes, probably on different machines) these kinds of bugs are less likely to occur.
 
 ### Scale
 A monolith is a single deployable unit, and it is usually deployed as a single process. This means that you cannot scale parts of the system independently. If you have a part of the system that is used more than the rest of the system you will have to scale the entire system to handle the load. If you have problems with scale and you have a monolith you will have to scale the entire system, even if only a small part of it is under load.
