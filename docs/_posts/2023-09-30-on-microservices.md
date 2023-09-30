@@ -12,7 +12,7 @@ main-image-alt: A split monolith with a smaller statue in front of it
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
-Much has been written about [microservices](https://en.wikipedia.org/wiki/Microservices) as an architectural pattern. I have worked with them for a many years, and have thoughts on when they make sense and the consequences of using them.
+Much has been written about [microservices](https://en.wikipedia.org/wiki/Microservices) as an architectural pattern. I have worked with them for many years, and have thoughts on when they make sense and the consequences of using them.
 
 ## What are microservices?
 
@@ -123,7 +123,7 @@ With a system of services that interact in well-known and well-defined ways you 
 
 This requires that you have well-defined interfaces and protocols of interaction. You also need some way of routing information between your services. This routing system then gives you the ability to replace a service with another.
 
-When introducing smaller services we use the [strangler pattern](https://www.redhat.com/architect/pros-and-cons-strangler-architecture-pattern). Tt is a powerful pattern that lets you gradually replace parts of a system with new parts. When you already have services you use your data-routing -system to route information to the new service instead of the old one.
+When introducing smaller services we use the [strangler pattern](https://www.redhat.com/architect/pros-and-cons-strangler-architecture-pattern). It is a powerful pattern that lets you gradually replace parts of a system with new parts. When you already have services you use your data-routing -system to route information to the new service instead of the old one.
 
 ### Team topology
 This is a bit of a meta-reason, but it is an important one. By splitting up your team into smaller teams also split system into smaller services. You can use your team-structure as a blueprint for your system architecture. In fact, your system architecture cannot help but reflect your team structure.
@@ -132,7 +132,7 @@ Separating services from a monolith is done by setting up teams that reflect the
 
 Setting up different teams and deciding how to split up the system is the job of the "architects" and technical leaders. They work together to transform the organization while keeping the system running.
 
-This exercise is what is sometimes referred to as the (inverse Conway maneuver)[https://www.thoughtworks.com/radar/techniques/inverse-conway-maneuver]. It is a technique to transform your organization and system towards some goal.
+This exercise is what is sometimes referred to as the [inverse Conway maneuver](https://www.thoughtworks.com/radar/techniques/inverse-conway-maneuver). It is a technique to transform your organization and system towards some goal.
 
 ## So, what to do?
 As with most things in software development the answer is "it depends". There are benefits to splitting up a system into smaller services, but also to keeping a system as a monolith.
