@@ -51,7 +51,7 @@ And our hopes of winning "best presentation" - nope. We got smashed in that vote
 
 ## Learning
 
-As I sit and think about it - I think we should have gone for the small solution from the start. Anything that has a minimal impact, but solves a real need is inherently preferable to something that bigger and more involved that solves that same need. We should have gone small, but we did not until we were forced to. Losing much of our team and time brought the need into a clearer focus - and we got to deliver on something focused and small.
+As I sit and think about it - I think we should have gone for the small solution from the start. Anything that has a minimal impact, but solves a real need is inherently preferable to something that is bigger and more involved that solves that same need. We should have gone small, but we did not until we were forced to. Losing much of our team and time brought the need into a clearer focus - and we got to deliver on something focused and small.
 
 I hope I am wise enough to remember this lesson the next time I am faced with a challenge. I hope I am wise enough to go small.
 
