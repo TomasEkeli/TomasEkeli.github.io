@@ -73,6 +73,7 @@ To convert all the images I used a debian package called [ImageMagick](https://g
 ```bash
 $ sudo apt update
 $ sudo apt install imagemagick
+$ find . -type f -regex ".*\.\(jpg\|jpeg\|png\)" -exec convert {} -resize 1024x {}  \; -print
 $ find . -type f -regex ".*\.\(jpg\|jpeg\|png\)" -exec mogrify -format webp {}  \; -print
 $ find . -type f -regex ".*\.\(jpg\|jpeg\|png\)" -exec rm {}  \; -print
 ```
