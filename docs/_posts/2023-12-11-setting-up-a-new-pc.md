@@ -10,8 +10,6 @@ main-image: /assets/img/2023-12-11-setting-up-a-new-windows-pc-my-personal-workf
 main-image-alt: A new computer setup with various applications
 ---
 
-# Setting Up a New Windows PC
-
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
 Setting up a new Windows PC can be quite the task, but it doesn't have to be daunting. Here I'm sharing my own setup routine, covering everything from the must-have utilities to customizing browsers and setting up development environments. If you're curious about how a seasoned developer and tech enthusiast approaches this task, or looking for ideas to optimize your own setup, this guide's for you.
