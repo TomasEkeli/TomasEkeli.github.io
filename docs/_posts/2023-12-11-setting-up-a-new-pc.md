@@ -14,7 +14,7 @@ main-image-alt: A new computer setup with various applications
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
-Setting up a new Windows PC can be a blend of excitement and challenge. For me, it's about creating a familiar environment where productivity meets efficiency. Here's my guide on how I like to set up a new Windows machine, focusing on essential tools and personal preferences.
+Setting up a new Windows PC can be quite the task, but it doesn't have to be daunting. Here I'm sharing my own setup routine, covering everything from the must-have utilities to customizing browsers and setting up development environments. If you're curious about how a seasoned developer and tech enthusiast approaches this task, or looking for ideas to optimize your own setup, this guide's for you.
 
 ## Starting with the Browser: Firefox
 
@@ -129,4 +129,4 @@ To round up the setup:
 
 By following these steps, I ensure that my new Windows PC is not just a machine, but a personalized workspace that aligns with my workflow and preferences. It's all about creating a space where productivity is effortless and secure.
 
-It's quite a lot, and it does take a while to set up. Following this guide gets me far pretty quickly, though, and I can get back to work in a few hours. I hope it helps you too!
+Got your own Windows setup that you're proud of, or some cool tips to share? I'm keen to hear about how others tackle their tech setups. There are no comments enabled here, but feel free to reach out and connect with me on the social platforms listed in the footer. Maybe send me a link to your own post describing how you set up a new PC? Let's swap stories and maybe pick up some new tricks along the way!
