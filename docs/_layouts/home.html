@@ -28,7 +28,7 @@ layout: base
         <div class="post-row">
           {% if post.main-image %}
           <a href="{{ post.url | relative_url }}" class="post-image">
-            <img src="{{ post.main-image }}"
+            <img src="{{ post.main-image | replace: '.webp', '-small.webp' }}"
               alt="{{ post.main-image-alt | escape }}"/>
           </a>
           {% endif %}

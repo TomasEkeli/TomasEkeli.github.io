@@ -20,7 +20,7 @@
         "GitHub.copilot"
       ]
     }
-  }
+  },
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
@@ -29,7 +29,7 @@
   // "forwardPorts": [],
 
   // Uncomment the next line to run commands after the container is created.
-  // "postCreateCommand": "jekyll --version"
+  "postCreateCommand": "chmod +x .devcontainer/postCreate.sh && .devcontainer/postCreate.sh"
 
   // Configure tool-specific properties.
   // "customizations": {},
