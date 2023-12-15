@@ -8,7 +8,7 @@ category: learning
 tags: [learning, hackathon, needs, small]
 excerpt: "From big ideas to small wins - a story about a hackathon."
 main-image: "/assets/img/2023-12-10-from-big-ideas-to-small-wins.webp"
-main-image-alt: "A small, red, toy car on a white background."
+main-image-alt: "A diverse group of people gathering around a computer discussing ideas and creating something"
 ---
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
