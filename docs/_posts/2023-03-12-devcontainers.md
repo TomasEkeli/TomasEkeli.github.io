@@ -7,6 +7,7 @@ permalink: 2023/03/devcontainers/
 categories: [devops, vscode]
 excerpt: "How to use devcontainers in vscode to make your development environment repeatable and contained"
 main-image: /assets/img/2023-03-12-devcontainers-00.webp
+main-image-alt: "Screenshot of vscode with a devcontainer active"
 ---
 
 ![Screenshot of vscode with a devcontainer active]({{ page.main-image }})

@@ -10,7 +10,7 @@ $color-scheme-dark: false !default;
 // Light mode
 // ----------
 
-$lm-brand-color:           #828282 !default;
+$lm-brand-color:           #525252 !default;
 $lm-brand-color-light:     lighten($lm-brand-color, 40%) !default;
 $lm-brand-color-dark:      darken($lm-brand-color, 25%) !default;
 
@@ -106,7 +106,7 @@ $lm-table-border-color:    $lm-border-color-01 !default;
 // Dark mode
 // ---------
 
-$dm-brand-color:           #999999 !default;
+$dm-brand-color:           #aaa !default;
 $dm-brand-color-light:     lighten($dm-brand-color, 5%) !default;
 $dm-brand-color-dark:      darken($dm-brand-color, 35%) !default;
 
