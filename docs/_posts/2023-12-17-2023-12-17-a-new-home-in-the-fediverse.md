@@ -10,6 +10,8 @@ main-image: /assets/img/2023-12-17-a-new-home-in-the-fediverse.webp
 main-image-alt: "illustration of a vibrant Fediverse community rising like a phoenix with interconnected nodes representing various platforms, set against a starry cyberspace background, symbolizing a welcoming and interconnected online world"
 ---
 
+My social-media path has brought me from Facebook, Google+, Laconi.ca (remember that?), Twitter, Mastodon and Pixelfed to my own server in the Fediverse.
+
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
 ## Some history
