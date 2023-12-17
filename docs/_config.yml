@@ -29,7 +29,7 @@ github_username:  TomasEkeli
 linkedin_username: TomasEkeli
 mastodon:
 - username: TomasEkeli
-  instance: snabelen.no
+  instance: plud.re
 
 # Build settings
 theme: minima
