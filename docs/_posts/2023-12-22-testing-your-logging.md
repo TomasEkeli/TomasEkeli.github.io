@@ -152,7 +152,7 @@ This way I can access the `Logs` -property directly in the test, and verify that
 
 This way of writing tests with the assertion and the act in the constructor is a bit unusual, but I find it very convenient. It makes the tests very readable, and it makes it easy to add or remove assertions.
 
-If you're using NUnit you can do the same thing with a `OneTimeSetUp` -method, and if you're using MSTest you can do the same thing with a `[TestInitialize]` -attribute. I prefer XUnit, as each Fact is inherently separate, but you can do this with any test framework. Just be careful with any statics.
+If you're using [NUnit](https://nunit.org/) you can do the same thing with a `OneTimeSetUp` -method, and if you're using MSTest you can do the same thing with a `[TestInitialize]` -attribute. I prefer XUnit, as each Fact is inherently separate, but you can do this with any test framework. Just be careful with any statics.
 
 ## Conclusion
 When you want to test that you are logging correctly it can be tricky - as extension methods and statics are hard to mock. By using MELT you can test that the correct log message is written, and that it is written at the correct log level. This frees you up from knowing how the logging actually happens under-the-hood, and you can specify just what you are interested in.
