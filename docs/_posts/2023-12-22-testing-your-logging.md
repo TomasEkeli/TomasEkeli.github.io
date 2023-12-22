@@ -161,7 +161,7 @@ You may not need or want to test your logging, but if you do - MELT is a great w
 
 ## P.S.: Performance and memory when logging
 
-The example Thing here uses the extension-methods from the `Microsoft.Extensions.Logging` -library directly in the code. This works, and is often what we do when we are not massively concerned with performance.
+The example `Thing` here uses the extension-methods from the `Microsoft.Extensions.Logging` -library directly in the code. This works, and is often what we do when we are not massively concerned with performance.
 
 If you are you should [generate log-methods](https://learn.microsoft.com/en-us/dotnet/core/extensions/logger-message-generator) using the `LoggerMessage` -attribute. This will generate a static method that you can call instead of the extension methods on `ILogger`. It is much faster and uses less memory (particularly when you log values).
 
