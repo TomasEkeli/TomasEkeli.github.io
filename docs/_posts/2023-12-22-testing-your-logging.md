@@ -20,30 +20,32 @@ The problem is that logging is often done through static methods or extension me
 
 ```csharp
 using Microsoft.Extensions.Logging;
-// ... other usings to get IService and Result
+/* ... other usings to get IService
+ and Result */
 
 public class Thing(
-    ILogger _logger,
-    IService _dependency)
+  ILogger _logger,
+  IService _dependency)
 {
-    public async Task<Result> DoTheThing()
+  public async Task<Result> DoTheThing()
+  {
+    _logger.LogInformation(
+      "Doing something");
+    try
     {
-        _logger.LogInformation(
-            "Doing something");
-        try
-        {
-            var something = await _dependency
-                .DoSomething();
-            return Result.Success(something);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Something went wrong");
-            return Result.Failure;
-        }
+      var something = await
+        _dependency.DoSomething();
+      return Result
+        .Success(something);
     }
+    catch (Exception ex)
+    {
+      _logger.LogError(
+        ex,
+        "Something went wrong");
+      return Result.Failure;
+    }
+  }
 }
 ```
 
@@ -71,41 +73,45 @@ using Xunit;
 
 public class ThingLogsAsExpected
 {
-    [Fact]
-    public async Task DoSomething_LogsCorrectMessage()
-    {
-        // Arrange
-        var loggerFactory = TestLoggerFactory
-            .Create();
-        var logger = loggerFactory
-            .CreateLogger<Thing>();
+  [Fact]
+  public async Task LogsCorrectMessage()
+  {
+    // Arrange
+    var factory = TestLoggerFactory
+      .Create();
+    var logger = factory
+      .CreateLogger<Thing>();
 
-        var dependency = Substitute
-            .For<IService>();
-        dependency
-            .DoSomething()
-            .Throws(new Exception("Boom!"));
+    var dependency = Substitute
+      .For<IService>();
+    dependency
+      .DoSomething()
+      .Throws(
+        new Exception("Boom!")
+      );
 
-        var system_under_test = new Thing(
-            logger,
-            dependency);
+    var system_under_test = new Thing(
+      logger,
+      dependency);
 
-        // Act
-        await system_under_test.DoTheThing();
+    // Act
+    await system_under_test
+      .DoTheThing();
 
-        // Assert
-        loggerFactory
-            .Sink
-            .LogEntries
-            .ShouldContain(logEntry =>
-                logEntry.LogLevel ==
-                    LogLevel.Error
-                && logEntry.Exception != null
-                && logEntry.Exception.Message ==
-                    "Boom!"
-                && logEntry.Message ==
-                    "Something went wrong");
-    }
+    // Assert
+    factory
+      .Sink
+      .LogEntries
+      .ShouldContain(entry =>
+        entry.LogLevel ==
+          LogLevel.Error
+        && entry.Exception != null
+        && entry.Exception.Message
+          == "Boom!"
+        && entry.Message ==
+          "Something went wrong"
+      );
+  }
 }
 ```
 
@@ -122,72 +128,87 @@ using Xunit;
 
 public abstract class TestsWithLogging
 {
-    protected ITestLoggerFactory LoggerFactory =
-         TestLoggerFactory.Create();
-    protected IEnumerable<LogEntry> Logs =>
-        LoggerFactory.Sink.LogEntries;
+  protected ITestLoggerFactory Factory =
+     TestLoggerFactory.Create();
 
-    public TestsWithLogging() =>
-        LoggerFactory.Sink.Clear();
+  protected IEnumerable<LogEntry> Logs =>
+    Factory.Sink.LogEntries;
+
+  public TestsWithLogging() =>
+    Factory.Sink.Clear();
 }
 
 public class WhenTheDependencyThrows
-    : TestsWithLogging
+  : TestsWithLogging
 {
-    readonly IService _dependency;
-    readonly ILogger<Thing> _logger;
-    readonly Thing _system_under_test;
-    readonly Result _result;
+  readonly IService _dependency;
+  readonly ILogger<Thing> _logger;
+  readonly Thing _system_under_test;
+  readonly Result _result;
 
-    public WhenTheDependencyThrows()
-    {
-        // Arrange
-        _dependency = Substitute
-            .For<IService>();
-        _logger = LoggerFactory
-            .CreateLogger<Thing>();
+  public WhenTheDependencyThrows()
+  {
+    // Arrange
+    _dependency = Substitute
+      .For<IService>();
+    _logger = Factory
+      .CreateLogger<Thing>();
 
-        _system_under_test = new Thing(
-            _logger,
-            _dependency);
+    _system_under_test = new Thing(
+      _logger,
+      _dependency);
 
-        _dependency
-            .DoSomething()
-            .Throws(new Exception("Boom!"));
+    _dependency
+      .DoSomething()
+      .Throws(
+        new Exception("Boom!")
+      );
 
-        // Act
-        _result = _system_under_test
-            .DoTheThing()
-            .Result;
-    }
+    // Act
+    _result = _system_under_test
+      .DoTheThing()
+      .Result;
+  }
 
-    // each Fact is an assertion
-    [Fact]
-    public void DoSomething_LogsTheExpectedError() =>
-        Logs
-            .ShouldContain(logEntry =>
-                logEntry.LogLevel ==
-                    LogLevel.Error
-                && logEntry.Exception != null
-                && logEntry.Exception.Message ==
-                    "Boom!"
-                && logEntry.Message ==
-                    "Something went wrong");
+  // each Fact is an assertion
+  [Fact]
+  public void LogsError() =>
+    Logs
+      .ShouldContain(logEntry =>
+        logEntry.LogLevel ==
+          LogLevel.Error
+        && logEntry.Exception !=
+          null
+        && logEntry
+          .Exception
+          .Message == "Boom!"
+        && logEntry.Message ==
+          "Something went wrong"
+      );
 
-    [Fact]
-    public void DoSomething_LogsTheExpectedInformation() =>
-        Logs
-            .ShouldContain(logEntry =>
-                logEntry.LogLevel ==
-                    LogLevel.Information
-                && logEntry.Message ==
-                    "Doing something");
+  [Fact]
+  public void LogsInformation() =>
+    Logs
+      .ShouldContain(logEntry =>
+        logEntry.LogLevel ==
+          LogLevel.Information
+        && logEntry.Message ==
+          "Doing something"
+      );
+
+  [Fact]
+  public void LogsTwoMessages() =>
+    Logs
+      .Count()
+      .ShouldBe(2);
 }
 ```
 
 This way I can access the `Logs` -property directly in the test, and verify that it contains what I expect. By clearing the logs before each test each run gets their own log and the tests won't affect each other.
 
-This way of writing tests with the assertion and the act in the constructor is a bit unusual, but I find it very convenient. It makes the tests very readable, and it makes it easy to add or remove assertions.
+This way of writing tests with the assertion and the act in the constructor is a bit unusual, but I find it very convenient. It makes the tests very readable, and it makes it easy to add or remove assertions. As you can see here I've added two more assertions, and the test still reads well.
+
+Some readers may not agree with my rather aggressive column-limit. I don't actually break my code at 43 characters in real life, but I do try to keep it under 80 characters. I do it here to keep the code within the screen for readers on mobile devices (there have been complaints).
 
 If you're using [NUnit](https://nunit.org/) you can do the same thing with a `OneTimeSetUp` -method, and if you're using MSTest you can do the same thing with a `[TestInitialize]` -attribute. I prefer XUnit, as each Fact is inherently separate, but you can do this with any test framework. Just be careful with any statics.
 
@@ -206,40 +227,40 @@ Note that for this to work your class must be partial (to allow the generated co
 
 ```csharp
 public partial class ThingWithPerformantLogging(
-    ILogger _logger,
-    IService _dependency)
+  ILogger _logger,
+  IService _dependency)
 {
-    public async Task<Result> DoTheThing()
+  public async Task<Result> DoTheThing()
+  {
+    LogDoingSomething(_logger);
+    try
     {
-        LogDoingSomething(_logger);
-        try
-        {
-            var something = await _dependency
-                .DoSomething();
-            return Result.Success(something);
-        }
-        catch (Exception ex)
-        {
-            LogDoingSomethingFailed(
-                _logger,
-                ex);
-            return Result.Failure;
-        }
+      var something = await _dependency
+        .DoSomething();
+      return Result.Success(something);
     }
+    catch (Exception ex)
+    {
+      LogDoingSomethingFailed(
+        _logger,
+        ex);
+      return Result.Failure;
+    }
+  }
 
-    [LoggerMessage(
-        EventId = 1,
-        Level = LogLevel.Information,
-        Message = "Doing something")]
-    public static partial void LogDoingSomething(
-        ILogger logger);
+  [LoggerMessage(
+    EventId = 1,
+    Level = LogLevel.Information,
+    Message = "Doing something")]
+  public static partial void LogDoingSomething(
+    ILogger logger);
 
-    [LoggerMessage(
-        EventId = 2,
-        Level = LogLevel.Error,
-        Message = "Something went wrong")]
-    public static partial void LogDoingSomethingFailed(
-        ILogger logger,
-        Exception ex);
+  [LoggerMessage(
+    EventId = 2,
+    Level = LogLevel.Error,
+    Message = "Something went wrong")]
+  public static partial void LogDoingSomethingFailed(
+    ILogger logger,
+    Exception ex);
 }
 ```
