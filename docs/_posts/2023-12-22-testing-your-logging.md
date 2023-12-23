@@ -223,7 +223,7 @@ The example `Thing` here uses the extension-methods from the `Microsoft.Extensio
 
 If you are you should [generate log-methods](https://learn.microsoft.com/en-us/dotnet/core/extensions/logger-message-generator) using the `LoggerMessage` -attribute. This will generate a static method that you can call instead of the extension methods on `ILogger`. It is much faster and uses less memory (particularly when you log values).
 
-Note that for this to work your class must be partial (to allow the generated code to "take over" for the log-methods). Example:
+Note that for this to work your class must be `partial` (to allow the generated code to "take over" for the log-methods). Example:
 
 ```csharp
 public partial class Thing(
