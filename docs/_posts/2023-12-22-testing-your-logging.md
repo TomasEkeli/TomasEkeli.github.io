@@ -22,18 +22,25 @@ The problem is that logging is often done through static methods or extension me
 using Microsoft.Extensions.Logging;
 // ... other usings to get IService and Result
 
-public class Thing(ILogger _logger, IService _dependency)
+public class Thing(
+    ILogger _logger,
+    IService _dependency)
 {
     public async Task<Result> DoTheThing()
     {
-        _logger.LogInformation("Doing something");
+        _logger.LogInformation(
+            "Doing something");
         try
         {
-            return Result.Success(await _dependency.DoSomething());
+            var something = await _dependency
+                .DoSomething();
+            return Result.Success(something);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Something went wrong");
+            _logger.LogError(
+                ex,
+                "Something went wrong");
             return Result.Failure;
         }
     }
@@ -68,13 +75,20 @@ public class ThingLogsAsExpected
     public async Task DoSomething_LogsCorrectMessage()
     {
         // Arrange
-        var loggerFactory = TestLoggerFactory.Create();
-        var logger = loggerFactory.CreateLogger<Thing>();
+        var loggerFactory = TestLoggerFactory
+            .Create();
+        var logger = loggerFactory
+            .CreateLogger<Thing>();
 
-        var dependency = Substitute.For<IService>();
-        dependency.DoSomething().Throws(new Exception("Boom!"));
+        var dependency = Substitute
+            .For<IService>();
+        dependency
+            .DoSomething()
+            .Throws(new Exception("Boom!"));
 
-        var system_under_test = new Thing(logger, dependency);
+        var system_under_test = new Thing(
+            logger,
+            dependency);
 
         // Act
         await system_under_test.DoTheThing();
@@ -83,10 +97,14 @@ public class ThingLogsAsExpected
         loggerFactory
             .Sink
             .LogEntries
-            .ShouldContain(logEntry => logEntry.LogLevel == LogLevel.Error
+            .ShouldContain(logEntry =>
+                logEntry.LogLevel ==
+                    LogLevel.Error
                 && logEntry.Exception != null
-                && logEntry.Exception.Message == "Boom!"
-                && logEntry.Message == "Something went wrong");
+                && logEntry.Exception.Message ==
+                    "Boom!"
+                && logEntry.Message ==
+                    "Something went wrong");
     }
 }
 ```
@@ -104,13 +122,17 @@ using Xunit;
 
 public abstract class TestsWithLogging
 {
-    protected ITestLoggerFactory LoggerFactory = TestLoggerFactory.Create();
-    protected IEnumerable<LogEntry> Logs => LoggerFactory.Sink.LogEntries;
+    protected ITestLoggerFactory LoggerFactory =
+         TestLoggerFactory.Create();
+    protected IEnumerable<LogEntry> Logs =>
+        LoggerFactory.Sink.LogEntries;
 
-    public TestsWithLogging() => LoggerFactory.Sink.Clear();
+    public TestsWithLogging() =>
+        LoggerFactory.Sink.Clear();
 }
 
-public class WhenTheDependencyThrows : TestsWithLogging
+public class WhenTheDependencyThrows
+    : TestsWithLogging
 {
     readonly IService _dependency;
     readonly ILogger<Thing> _logger;
@@ -120,31 +142,46 @@ public class WhenTheDependencyThrows : TestsWithLogging
     public WhenTheDependencyThrows()
     {
         // Arrange
-        _dependency = Substitute.For<IService>();
-        _logger = LoggerFactory.CreateLogger<Thing>();
+        _dependency = Substitute
+            .For<IService>();
+        _logger = LoggerFactory
+            .CreateLogger<Thing>();
 
-        _system_under_test = new Thing(_logger, _dependency);
+        _system_under_test = new Thing(
+            _logger,
+            _dependency);
 
-        _dependency.DoSomething().Throws(new Exception("Boom!"));
+        _dependency
+            .DoSomething()
+            .Throws(new Exception("Boom!"));
 
         // Act
-        _result = _system_under_test.DoTheThing().Result;
+        _result = _system_under_test
+            .DoTheThing()
+            .Result;
     }
 
     // each Fact is an assertion
     [Fact]
     public void DoSomething_LogsTheExpectedError() =>
         Logs
-            .ShouldContain(logEntry => logEntry.LogLevel == LogLevel.Error
+            .ShouldContain(logEntry =>
+                logEntry.LogLevel ==
+                    LogLevel.Error
                 && logEntry.Exception != null
-                && logEntry.Exception.Message == "Boom!"
-                && logEntry.Message == "Something went wrong");
+                && logEntry.Exception.Message ==
+                    "Boom!"
+                && logEntry.Message ==
+                    "Something went wrong");
 
     [Fact]
     public void DoSomething_LogsTheExpectedInformation() =>
         Logs
-            .ShouldContain(logEntry => logEntry.LogLevel == LogLevel.Information
-                && logEntry.Message == "Doing something");
+            .ShouldContain(logEntry =>
+                logEntry.LogLevel ==
+                    LogLevel.Information
+                && logEntry.Message ==
+                    "Doing something");
 }
 ```
 
@@ -177,11 +214,15 @@ public partial class ThingWithPerformantLogging(
         LogDoingSomething(_logger);
         try
         {
-            return Result.Success(await _dependency.DoSomething());
+            var something = await _dependency
+                .DoSomething();
+            return Result.Success(something);
         }
         catch (Exception ex)
         {
-            LogDoingSomethingFailed(_logger, ex);
+            LogDoingSomethingFailed(
+                _logger,
+                ex);
             return Result.Failure;
         }
     }
@@ -190,7 +231,8 @@ public partial class ThingWithPerformantLogging(
         EventId = 1,
         Level = LogLevel.Information,
         Message = "Doing something")]
-    public static partial void LogDoingSomething(ILogger logger);
+    public static partial void LogDoingSomething(
+        ILogger logger);
 
     [LoggerMessage(
         EventId = 2,
