@@ -226,13 +226,13 @@ If you are you should [generate log-methods](https://learn.microsoft.com/en-us/d
 Note that for this to work your class must be partial (to allow the generated code to "take over" for the log-methods). Example:
 
 ```csharp
-public partial class ThingWithPerformantLogging(
+public partial class Thing(
   ILogger _logger,
   IService _dependency)
 {
   public async Task<Result> DoTheThing()
   {
-    LogDoingSomething(_logger);
+    Entered(_logger);
     try
     {
       var something = await _dependency
@@ -241,9 +241,7 @@ public partial class ThingWithPerformantLogging(
     }
     catch (Exception ex)
     {
-      LogDoingSomethingFailed(
-        _logger,
-        ex);
+      Failed(_logger, ex);
       return Result.Failure;
     }
   }
@@ -252,15 +250,17 @@ public partial class ThingWithPerformantLogging(
     EventId = 1,
     Level = LogLevel.Information,
     Message = "Doing something")]
-  public static partial void LogDoingSomething(
+  public static partial void Entered(
     ILogger logger);
 
   [LoggerMessage(
     EventId = 2,
     Level = LogLevel.Error,
     Message = "Something went wrong")]
-  public static partial void LogDoingSomethingFailed(
+  public static partial void Failed(
     ILogger logger,
     Exception ex);
 }
 ```
+
+Hmm, maybe I've finally found a real use for `#region`? In fact you may pull those partial methods out to a different file, perhaps called `Thing.Logging.cs` or something like that. That way you can keep the code that does the actual work separate from the logging code. Personally I prefer to have it all in one file.
