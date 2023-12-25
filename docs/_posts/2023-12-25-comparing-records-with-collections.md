@@ -40,13 +40,13 @@ public record PersonWithNickname(
 var person1 = new PersonWithNickname(
     "Tomas",
     "Ekeli",
-    new List<string> { "Tommy" }
+    new() { "Tommy" }
 );
 
 var person2 = new PersonWithNickname(
     "Tomas",
     "Ekeli",
-    new List<string> { "Tommy" }
+    new() { "Tommy" }
 );
 
 // will print "false"
