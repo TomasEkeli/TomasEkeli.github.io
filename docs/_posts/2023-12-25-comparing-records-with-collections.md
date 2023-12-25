@@ -74,7 +74,7 @@ You change your record to use the `ValueCollection<T>` from the library instead 
 
 ```csharp
 
-using Nemesis.Essentials.Collections;
+using Nemesis.Essentials.Design;
 
 public record PersonWithNickname(
     string FirstName,
