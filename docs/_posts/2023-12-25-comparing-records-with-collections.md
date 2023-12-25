@@ -12,6 +12,8 @@ main-image-alt: "Two silhouettes with a glowing connection between them represen
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
+## Use records for value semantics
+
 Records are a great thing in C#. They are immutable, and give you "value semantics" for comparison. This means that two records with the same values are considered equal, even if they are different instances. This saves you a lot of time and troublesome code!
 
 ```csharp
@@ -25,6 +27,7 @@ var person2 = new Person("Tomas", "Ekeli");
 // will print "true"
 Console.WriteLine(person1 == person2);
 ```
+## The problem with collections
 
 Wonderful, but it all falls down if you have a collection of some sort as a property in your record. Then the comparison will only compare the references of the collections, not the contents. This is because the default implementation of `Equals` and `GetHashCode` for collections only compares the references.
 
@@ -61,6 +64,8 @@ Console.WriteLine(person1 == person3);
 ```
 
 This is (in my experience) usually not what I want. When I use a record I am almost always using it for its value semantics. I want to compare the contents of the collections, not the references. So how do we do that?
+
+## Solution: Nemesis.Essentials
 
 We could implement our own collections that override `Equals` and `GetHashCode` to compare the contents. But that is a lot of work, and it is easy to get wrong, and will be a chore to maintain.
 
