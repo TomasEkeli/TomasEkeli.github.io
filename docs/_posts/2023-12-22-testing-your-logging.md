@@ -61,6 +61,13 @@ Instead - take a step back and think about what you're actually trying to test. 
 ## MELT
 This is just what [MELT](https://github.com/alefranz/MELT) gives you! MELT is a library that lets you work with the standard `Microsoft.Extensions.Logging` -library, but lets you run your tests and capture the logged output. Then you verify that the output (which is what you actually care about) is correct. This frees you up from knowing *how* the logging actually happens under-the-hood, and you can assert on the output instead. [Here's a great post on it](https://alessio.franceschelli.me/posts/dotnet/how-to-test-logging-when-using-microsoft-extensions-logging/).
 
+To install it, add Microsoft.Extensions.Logging (if not already there) and the [MELT NuGet package](https://www.nuget.org/packages/MELT/) to your test project:
+
+```powershell
+dotnet add package Microsoft.Extensions.Logging
+dotnet add package MELT
+```
+
 In this is an example [XUnit](https://github.com/xunit/xunit) test that verifies that the correct log message is written, with [NSubstitute](https://nsubstitute.github.io/) and [Shouldly](https://docs.shouldly.org/) for mocking and assertions:
 
 ```csharp
