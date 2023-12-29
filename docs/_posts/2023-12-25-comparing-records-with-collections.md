@@ -111,7 +111,7 @@ There are a lot of other things in that library as well, but this one seemed ver
 
 As has been pointed out to me by [Leszek Ciesielski](https://hachyderm.io/@skolima) - there are some caveats to [this approach](https://plud.re/notes/9nt0ow2gvup4nb33). While it *does* provide the equality semantics I am after, it comes with consequences.
 
-`ValueCollection` inherits [System.Collections.ObjectModel.Collection<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.collection-1?view=net-8.0), a *mutable* data-structure.
+`ValueCollection` inherits [System.Collections.ObjectModel.Collection](https://learn.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.collection-1), a *mutable* data-structure.
 
 This is not what we want in a record, as their immutability is why they can have value semantics in the first place. And, since the collection can be part of how the record is compared and hashed - this means that the record's hash-code can change. This is a problem. It can also affect serialization -performance, which is bad.
 
@@ -119,6 +119,6 @@ Whether or not these problems are deal-breakers for you depends on your use-case
 
 I still think that the library is useful, but it is not a silver bullet. If anyone ever finds one of those fabled silver bullets - please tell me! I will probably use it in some cases, but not in others.
 
-An alternative solution is to use [System.Collections.Immutable.ImmutableList<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutablelist-1) instead of `ValueCollection<T>`. This is an immutable data-structure, and it has the equality semantics we want. But, it is not a drop-in replacement for `List<T>`, so you will have to change your code to use it. It also has some performance implications, so you need to consider those carefully before you use it.
+An alternative solution is to use [System.Collections.Immutable.ImmutableList](https://learn.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutablelist-1) instead of `ValueCollection<T>`. This is an immutable data-structure, and it has the equality semantics we want. But, it is not a drop-in replacement for `List<T>`, so you will have to change your code to use it. It also has some performance implications, so you need to consider those carefully before you use it.
 
 There is also the [System.Collections.Frozen](https://learn.microsoft.com/en-us/dotnet/api/system.collections.frozen) -namespace in dotnet8, which spends more time when constructing the collection, but is immutable from then on and offers [better performance after creation](https://davecallan.com/dotnet-8-frozendictionary-benchmarks/). They only have Dictionaries and Sets, though - no Lists.
