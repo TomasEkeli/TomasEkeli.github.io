@@ -117,7 +117,7 @@ This is not what we want in a record, as their immutability is why they can have
 
 Whether or not these problems are deal-breakers for you depends on your use-case. Do you need to serialize and deserialize your records? Do you need to use them as keys in a dictionary? Will you never mutate the collection? If the answer to any of these questions is "yes", then you should probably *not* use this approach.
 
-I still think that the library is useful, but it is not a silver bullet. If anyone ever finds one of those fabled silver bullets - please tell me! I will probably use it in some cases, but not in others.
+I still think that the library is useful, but it is not a silver bullet. If anyone ever finds one of those fabled silver bullets - please tell me! I will probably use the Nemesis -library in some cases, but not in others.
 
 An alternative solution is to use [System.Collections.Immutable.ImmutableList](https://learn.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutablelist-1) instead of `ValueCollection<T>`. This is an immutable data-structure, and it has the equality semantics we want. But, it is not a drop-in replacement for `List<T>`, so you will have to change your code to use it. It also has some performance implications, so you need to consider those carefully before you use it.
 
