@@ -14,11 +14,9 @@ main-image-alt: "A computer monitor displaying colourful lines labeled Authentic
 
 ## Our AuthenticationHandler
 
-We have an `AuthenticationHandler` that looks like this to handle authentication (this is just a silly example randomly allowing or denying authentication):
+Let us say we have an `AuthenticationHandler` that looks like this to handle authentication. Here is a silly example randomly allowing or denying authentication:
 
 ```csharp
-
-
 public partial class RandomAuthenticationHandler
 : AuthenticationHandler<AuthenticationSchemeOptions>
 {
@@ -57,9 +55,10 @@ public partial class RandomAuthenticationHandler
         if (!_randomSettings.Enabled)
         {
             LogDisabled(_logger);
-            return Task.FromResult(AuthenticateResult.NoResult());
+            return Task.FromResult(
+                AuthenticateResult.NoResult()
+            );
         }
-
 
         if (Random.Shared.NextDouble() < _randomSettings.Chance)
         {
@@ -110,11 +109,13 @@ public class RandomSettings
 }
 ```
 
-How would we test such a thing? Put aside that this is a silly example, and randomness it inherently hard to test. How do we set up the `AuthenticationHandler` in a test?
+How would we test such a thing? Set aside that this is a silly example, and randomness it inherently hard to test. How do we set up the `AuthenticationHandler` in a test?
 
 ## Setting up the test
 
-We're going to need to instantiate our `RandomAuthenticationHandler` in a test. We can do that fine. In the following example I'm using [NSubstitute](https://nsubstitute.github.io/) for mocking, and [xUnit](https://xunit.net/) for the test framework. The logging is set up in a base class called `Test_with_logs` that I use in many tests, you can read about that in [this post](https://www.eke.li/testing/2023/12/22/testing-your-logging.html).
+We need to instantiate our `RandomAuthenticationHandler` in a test. We can do that fine.
+
+In the following example I'm using [NSubstitute](https://nsubstitute.github.io/) for mocking, and [xUnit](https://xunit.net/) for the test framework. The logging is set up in a base class called `Test_with_logs` that I use in many tests, you can read about that in [this post](https://www.eke.li/testing/2023/12/22/testing-your-logging.html).
 
 ```csharp
 public class Given_a_RandomAuthenticationHandler
@@ -141,7 +142,7 @@ public class Given_a_RandomAuthenticationHandler
             new RandomSettings
             {
                 Enabled = true,
-                Chance = 0.2//
+                Chance = 0.2
             }
         );
 
@@ -168,7 +169,7 @@ public class When_authenticating_randomly
 
 ```
 
-Our simple test fails, though - as the `AuthenticationHandler` needs to be initialised before use. We can do that by calling the `InitializeAsync` method. This is the part that aspnet calls before our `HandleAuthenticationAsync` method is called. Let's add that to our test base-class (the `Given` -class):
+Our simple test fails, since the `AuthenticationHandler` must be initialised before use. We can do that by calling the `InitializeAsync` -method. This is the thing that aspnet calls before our `HandleAuthenticationAsync` method is called. Let's add that to our test base-class (the `Given` -class):
 
 
 ```csharp
