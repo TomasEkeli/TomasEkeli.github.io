@@ -1,11 +1,11 @@
 ---
 layout: post
-title: Implementing RFC 9457: Problem Details for HTTP APIs in ASP.NET
+title: "Implementing RFC 9457: Problem Details for HTTP APIs in ASP.NET"
 date: 2025-09-26 17:29 +0200
 category: dotnet
 author: Tomas Ekeli
 tags: [dotnet, aspnet, development, http, standards, rfc, api]
-excerpt: Tell your clients what went wrong, not just that something went wrong.
+excerpt: Tell your clients what went wrong, not just that something went wrong. With RFC 9457 and ASP.NET it's easy to do.
 main-image: /assets/img/2025-09-26-problem-details.webp
 main-image-alt: "A computer monitor displaying an error message with a sad face emoji. Text overlay reads Implementing RFC 9457: Problem Details for HTTP APIs in ASP.NET."
 ---
