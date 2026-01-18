@@ -7,7 +7,7 @@ author: Tomas Ekeli
 tags: [docker, podman, wsl, development, devcontainers]
 excerpt: I tried replacing Docker Desktop with Podman on Windows. It didn't work out. Here's what happened, what I learned, and why I'm back on Docker Desktop.
 main-image: /assets/img/2026-01-18-failing-with-podman.webp
-main-image-alt: Podman logo on a Windows background
+main-image-alt: Purple seals on a "bliss" background. One of them has a captain's hat and a cup with two handles and a Kubernetes logo. The other has a small cog.
 ---
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
