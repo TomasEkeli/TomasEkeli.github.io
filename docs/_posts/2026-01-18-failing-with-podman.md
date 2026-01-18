@@ -6,13 +6,11 @@ category: docker
 author: Tomas Ekeli
 tags: [docker, podman, wsl, development, devcontainers]
 excerpt: I tried replacing Docker Desktop with Podman on Windows. It didn't work out. Here's what happened, what I learned, and why I'm back on Docker Desktop.
-main-image: /assets/img/2026-01-18-failing-with-podman/main-image.webp
+main-image: /assets/img/2026-01-18-failing-with-podman.webp
 main-image-alt: Podman logo on a Windows background
 ---
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
-
-# Failing to replace Docker with Podman for Dev Containers
 
 I spent my Sunday trying to replace Docker Desktop with Podman. It didn't work out. Here's what happened, what I learned, and why I'm back on Docker Desktop.
 
