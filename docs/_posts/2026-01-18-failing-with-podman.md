@@ -16,7 +16,7 @@ I spent my Sunday trying to replace Docker Desktop with Podman. It didn't work o
 
 ## The motivation
 
-Docker Desktop's licensing changed a while back, and while it's not expensive, I was curious about alternatives. Podman keeps coming up as the obvious choice — it's open source, daemonless, rootless by default, and claims Docker CLI compatibility. My C: drive was also running extremely low on space, and I figured a fresh start might help with that out too.
+Docker Desktop's licensing changed a while back, and while it's not expensive, I was curious about alternatives. Podman keeps coming up as the obvious choice: it's open source, daemonless, rootless by default, and claims Docker CLI compatibility. My C: drive was also running extremely low on space, and I figured a fresh start might help with that out too.
 
 ## What worked
 
@@ -75,7 +75,7 @@ But the devcontainer builds still failed.
 
 The devcontainer build got further, but then failed with an error about an invalid symlink in a devcontainer feature. I worked around that by removing the offending feature. Then it failed because the workspace folder was empty.
 
-The bind mount — the thing that maps my actual project folder (in the Ubuntu WSL distro filesystem) into the container — wasn't working. The container was running, the mount was configured, but the folder was empty inside the container.
+The bind mount: the thing that maps my actual project folder (in the Ubuntu WSL distro filesystem) into the container: wasn't working. The container was running, the mount was configured, but the folder was empty inside the container.
 
 This is a fundamental problem: **Podman's WSL distro cannot see the filesystem of my Ubuntu WSL distro.**
 
@@ -83,9 +83,9 @@ Docker Desktop solves this transparently. It has special filesystem sharing betw
 
 My options at this point were:
 
-1. Move all my code to a Windows drive (C: or E:) — that's *slow*, especially for git operations from within a Linux container
-2. Clone repos inside the Podman machine directly — then I lose all my tooling, git credentials, SSH keys, and dotfiles
-3. Install Podman natively inside Ubuntu WSL instead of using the Windows Podman — this is its own can of worms and might not work seamlessly with VS Code either
+1. Move all my code to a Windows drive (C: or E:): that's *slow*, especially for git operations from within a Linux container
+2. Clone repos inside the Podman machine directly: then I lose all my tooling, git credentials, SSH keys, and dotfiles
+3. Install Podman natively inside Ubuntu WSL instead of using the Windows Podman: this is its own can of worms and might not work seamlessly with VS Code either
 4. Go back to Docker Desktop
 
 ## The trade-offs
@@ -100,7 +100,7 @@ There's also value in using the standard approach. When you use mainstream tooli
 
 This is a general point: Every deviation from standard adds friction. I can absorb a Sunday of troubleshooting. But if I recommended this to my teams of developers, that's many work-days lost, plus ongoing support burden, plus "it works on my machine" debugging when setups drift. One of the major points of using containers is to reduce such friction, not add to it.
 
-The real cost of Docker Desktop licensing — $5/user/month or whatever it is now — suddenly looks cheap compared to developer time.
+The real cost of Docker Desktop licensing: $5/user/month or whatever it is now: suddenly looks cheap compared to developer time.
 
 ## Back to Docker Desktop
 
@@ -127,7 +127,7 @@ The devcontainer built and started on the first try. My files were there. Everyt
 
 Podman is a good tool. It works well for many things. Its security model is genuinely better than Docker's. But for using Dev Containers on Windows with WSL, it fails.
 
-For my workflow — devcontainers with code living in WSL's native filesystem — Docker Desktop is still the pragmatic choice. The "magic" it does behind the scenes to make filesystem sharing work across WSL distros is exactly what I need.
+For my workflow: devcontainers with code living in WSL's native filesystem: Docker Desktop is still the pragmatic choice. The "magic" it does behind the scenes to make filesystem sharing work across WSL distros is exactly what I need.
 
 Maybe Podman will solve this eventually. Maybe there's a configuration I missed. But after a full Sunday of trying, I'm back where I started, with a bit more appreciation for what Docker Desktop actually does.
 
