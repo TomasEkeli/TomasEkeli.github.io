@@ -142,3 +142,22 @@ For developers who want to use devcontainers without VS Code, maybe directly fro
 For me it just scratches the itch of the devcontainer CLI (a tool that I use to avoid installing things on my host machine) requiring me to install things on my host machine.
 
 Until next time!
+
+## Addendum: Docker socket permissions on Linux
+
+If you're trying this on a pure Linux host (as opposed to Docker Desktop on macOS or Windows), you might get a permission-problem when the container tries to talk to the Docker socket. This is because the socket is owned by the `docker` group on your host, and the user inside the container isn't a member of that group.
+
+The fix is to tell Docker to add the host's docker group to the container process. Update `dc.sh` to:
+
+
+```bash
+#!/bin/bash
+docker run --rm -it \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$(pwd)":"$(pwd)" \
+    -w "$(pwd)" \
+    --group-add $(stat -c '%g' /var/run/docker.sock) \
+    devcontainer-cli "$@"
+```
+
+The `stat -c '%g'` command gets the group-ID of the socket file, and `--group-add` grants that group to the container's process. Now the container should have access to write to the socket without running as root or changing permissions on the host.
