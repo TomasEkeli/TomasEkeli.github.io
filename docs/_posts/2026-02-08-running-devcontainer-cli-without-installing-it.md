@@ -1,16 +1,12 @@
 ---
 layout: post
-title: Title
-date: YYYY-MM-DD HH:MM
-category: Category
+title: Running the devcontainer CLI without installing it
+date: 2026-02-08 16:55:48 +0100
+categories: [docker, devcontainers, devops, vscode]
 author: Tomas Ekeli
-tags: [tag1, tag2]
-excerpt: Short summary for the listing of posts
-main-image: /assets/img/YYYY-MM-DD-Title/main-image.webp
-main-image-alt: Alt text for the main image
+tags: [devops, docker, development, devcontainers, vscode]
+excerpt: How to run the devcontainer CLI without installing it on your host machine, using only Docker.
 ---
-
-![{{ page.main-image-alt }}]({{ page.main-image }})
 
 I like devcontainers. I really like that they remove the "it works on my machine" problem, and I also really *really* like that they keep my machine clean. They do this by freeing me from installing all kinds of developer tools on my machine. I just run devcontainers, and whatever strange toolset is needed for the particular project or stack I'm working on just works. Gone are the days of having strange versions of node, python, java, rust, etc. installed on my machine. I just run devcontainers, and everything works.
 
@@ -61,10 +57,10 @@ That's cool, but we want to run it as if it was a tool on our host machine (with
 
 ```bash
 #!/bin/bash
-docker run --rm -it \  # run abd remove when done
+docker run --rm -it \  # run, but remove when done
     -v /var/run/docker.sock:/var/run/docker.sock \ # give access host docker
-    -v "$(pod)":"$(pod)" \ # access current directory (and subdirectories)
-    -w "$(pod)" \ # set working directory
+    -v "$(pwd)":"$(pwd)" \ # access current directory (and subdirectories)
+    -w "$(pwd)" \ # set working directory
     devcontainer-cli "$@" # pass all arguments to container
 ```
 
@@ -78,7 +74,7 @@ host $ ./dc.sh --version
 
 Excellent!
 
-## Inevitable failure
+## One small snag
 
 Very cool so far, let's try it out:
 
