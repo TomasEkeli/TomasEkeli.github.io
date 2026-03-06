@@ -8,8 +8,6 @@ tags: [docker, devcontainers, disk-space, windows, wsl]
 excerpt: How to find and reclaim hundreds of gigabytes that Docker Desktop silently consumes on Windows, and the vhdx file you probably don't know about.
 ---
 
-# Where is my disk space? Docker ate it.
-
 I use a lot of devcontainers. They're great - reproducible environments, no polluting my host machine, easy to share with colleagues. But they come with a cost that sneaks up on you: disk space.
 
 I recently found myself with only 59GB free on a 1TB drive. That's not great. I had a suspicion about where it all went, I've been here before.
