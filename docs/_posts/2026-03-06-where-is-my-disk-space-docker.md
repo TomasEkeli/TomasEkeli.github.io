@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Where is my disk space? Docker ate it.
-date: 2026-03-06 13:25
+date: 2026-03-06 13:25 +0200
 category: docker
 author: Tomas Ekeli
 tags: [docker, devcontainers, disk-space, windows, wsl]
