@@ -22,6 +22,7 @@ A quick check:
 docker system df
 ```
 My results:
+
 |TYPE            |TOTAL     |ACTIVE    |SIZE      |RECLAIMABLE   |
 |----------------|----------|----------|----------|--------------|
 |Images          |34        |34        |93.43GB   |14.44GB (15%) |
