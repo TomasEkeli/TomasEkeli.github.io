@@ -6,7 +6,6 @@ category: docker
 author: Tomas Ekeli
 tags: [docker, devcontainers, disk-space, windows, wsl]
 excerpt: How to find and reclaim hundreds of gigabytes that Docker Desktop silently consumes on Windows, and the vhdx file you probably don't know about.
-main-image: /assets/img/YYYY-MM-DD-Title/main-image.webp
 ---
 
 # Where is my disk space? Docker ate it.
