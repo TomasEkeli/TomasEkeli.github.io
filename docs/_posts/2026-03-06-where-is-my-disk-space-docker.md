@@ -39,7 +39,6 @@ Build Cache     699       0         0B        0B
 I listed them with their last-used dates and image names to figure out which ones I still needed:
 
 ```bash
-```bash
 docker ps -a \
     --format '{{.Names}}' \
     | while read name; do
@@ -74,7 +73,6 @@ docker ps -a \
     echo "${last}|${created}|\
 ${name}|${image}"
 done | sort
-```
 ```
 
 Devcontainer images are named `vsc-[projectname]-[hash]`, so it's easy to tell what's what. I had containers from 8 months ago that I'd completely forgotten about.
