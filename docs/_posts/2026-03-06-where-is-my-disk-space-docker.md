@@ -41,38 +41,20 @@ I listed them with their last-used dates and image names to figure out which one
 ```bash
 docker ps -a \
     --format '{{.Names}}' \
-    | while read name; do
-    finished=$(
-        docker inspect "$name" \
-            --format \
-                '{{.State.FinishedAt}}' \
-            | cut -dT -f1
-    )
-    started=$(
-        docker inspect "$name" \
-            --format \
-                '{{.State.StartedAt}}' \
-            | cut -dT -f1
-    )
-    if [[ "$finished" \
-                > "$started" ]]; then
-        last="$finished"
-    else
-        last="$started"
-    fi
-    created=$(
-        docker inspect "$name" \
-            --format '{{.Created}}' \
-            | cut -dT -f1
-    )
-    image=$(
-        docker inspect "$name" \
-            --format \
-                '{{.Config.Image}}'
-    )
-    echo "${last}|${created}|\
-${name}|${image}"
-done | sort
+  | while read name; do
+    docker inspect "$name" \
+    | jq -r '.[0] |
+      ([.State.FinishedAt,
+        .State.StartedAt]
+       | max
+       | split("T")[0])
+      + "|" +
+      (.Created
+       | split("T")[0])
+      + "|" + "'"$name"'"
+      + "|" +
+      .Config.Image'
+  done | sort
 ```
 
 Devcontainer images are named `vsc-[projectname]-[hash]`, so it's easy to tell what's what. I had containers from 8 months ago that I'd completely forgotten about.
@@ -88,10 +70,18 @@ This does mean that if you have three iterations of a python project as separate
 You can check what volumes each container uses:
 
 ```bash
-docker ps -a --format '{{.Names}}' | while read c; do
-  echo "=== $c ==="
-  docker inspect "$c" --format '{{range .Mounts}}{{.Type}} {{.Name}} {{.Destination}}{{println}}{{end}}'
-done
+docker ps -a \
+    --format '{{.Names}}' \
+  | while read c; do
+    echo "=== $c ==="
+    docker inspect "$c" \
+    | jq -r '
+      .[0].Mounts[] |
+      "    \(.Type)
+        \(.Name // "-")
+        \(.Destination)"'
+    echo
+  done
 ```
 
 ## Pruning carefully
@@ -129,7 +119,8 @@ That third file was 555GB. Yes, really. The `main/ext4.vhdx` that I'd been dilig
 
 The names and locations of the virtual hard-drives may vary by setup. Find all of them with:
 ```bash
-find /c/Users/<YourUsername>/AppData -name "*.vhdx" 2>/dev/null
+find /c/Users/<YourUsername>/AppData \
+  -name "*.vhdx"
 ```
 
 ## Compacting the vhdx files
