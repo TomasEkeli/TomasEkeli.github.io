@@ -21,14 +21,13 @@ A quick check:
 ```bash
 docker system df
 ```
-
-```
-TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
-Images          34        34        93.43GB   14.44GB (15%)
-Containers      40        0         53.28GB   53.28GB (100%)
-Local Volumes   48        48        140.4GB   0B (0%)
-Build Cache     699       0         0B        0B
-```
+My results:
+|TYPE            |TOTAL     |ACTIVE    |SIZE      |RECLAIMABLE   |
+|----------------|----------|----------|----------|--------------|
+|Images          |34        |34        |93.43GB   |14.44GB (15%) |
+|Containers      |40        |0         |53.28GB   |53.28GB (100%)|
+|Local Volumes   |48        |48        |140.4GB   |0B (0%)       |
+|Build Cache     |699       |0         |0B        |0B            |
 
 93GB in images, 53GB in container layers, 140GB in volumes. That's kind of a lot. But the build cache was already at 0B this time - I had pruned that previously.
 
