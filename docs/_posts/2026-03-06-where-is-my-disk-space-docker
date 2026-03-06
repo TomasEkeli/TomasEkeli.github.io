@@ -42,14 +42,42 @@ Build Cache     699       0         0B        0B
 I listed them with their last-used dates and image names to figure out which ones I still needed:
 
 ```bash
-docker ps -a --format '{{.Names}}' | while read name; do
-  finished=$(docker inspect "$name" --format '{{.State.FinishedAt}}' | cut -dT -f1)
-  started=$(docker inspect "$name" --format '{{.State.StartedAt}}' | cut -dT -f1)
-  if [[ "$finished" > "$started" ]]; then last="$finished"; else last="$started"; fi
-  created=$(docker inspect "$name" --format '{{.Created}}' | cut -dT -f1)
-  image=$(docker inspect "$name" --format '{{.Config.Image}}')
-  echo "${last}|${created}|${name}|${image}"
+```bash
+docker ps -a \
+    --format '{{.Names}}' \
+    | while read name; do
+    finished=$(
+        docker inspect "$name" \
+            --format \
+                '{{.State.FinishedAt}}' \
+            | cut -dT -f1
+    )
+    started=$(
+        docker inspect "$name" \
+            --format \
+                '{{.State.StartedAt}}' \
+            | cut -dT -f1
+    )
+    if [[ "$finished" \
+                > "$started" ]]; then
+        last="$finished"
+    else
+        last="$started"
+    fi
+    created=$(
+        docker inspect "$name" \
+            --format '{{.Created}}' \
+            | cut -dT -f1
+    )
+    image=$(
+        docker inspect "$name" \
+            --format \
+                '{{.Config.Image}}'
+    )
+    echo "${last}|${created}|\
+${name}|${image}"
 done | sort
+```
 ```
 
 Devcontainer images are named `vsc-[projectname]-[hash]`, so it's easy to tell what's what. I had containers from 8 months ago that I'd completely forgotten about.
