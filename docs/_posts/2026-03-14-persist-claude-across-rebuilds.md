@@ -10,8 +10,6 @@ excerpt: How to persist Claude Code authentication across devcontainer rebuilds 
 
 ![{{ page.main-image-alt }}]({{ page.main-image }})
 
-## Persisting Claude Code auth across devcontainer rebuilds
-
 If you use Claude Code (the CLI tool or the VS Code extension) inside a devcontainer, you lose your authentication and history every time you rebuild. This is annoying if you're like me and rebuild quite often.
 
 The extension and the CLI store their state in slightly different places. The VS Code extension seems to keep its data in `~/.claude/`, while the CLI makes a file `~/.claude.json` and stores its auth data there. Both of these are in the home directory, which gets wiped on rebuilds.
