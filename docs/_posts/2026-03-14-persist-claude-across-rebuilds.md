@@ -94,3 +94,5 @@ I use `postCreateCommand` rather than `postStartCommand` because it only needs t
 ## Now rebuilds are a non issue
 
 Two things to persist, two different approaches - a volume mount for the directory, and a symlink for the lone file. Rebuild away.
+
+After all of these changes you need to do one rebuild to set up the volume, then you authenticate the extension and CLI. After that you manually copy the CLI's auth file to prepare for the symlink, and then you're good to go. Rebuilds won't make you lose your auth or history anymore, and you can keep iterating on your devcontainer without worrying about losing your session. Happy coding!
