@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Cool down your dependencies
-date: 2026-06-19 09:40:00 +0200
+date: 2026-06-19 08:00:00 +0200
 category: security
 author: Tomas Ekeli
 tags: [security, supply-chain, dependencies, dependabot, devops]
