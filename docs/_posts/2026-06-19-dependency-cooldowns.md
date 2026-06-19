@@ -20,7 +20,7 @@ In Dependabot and Renovate a cooldown only applies to routine version updates, n
 
 ### How to turn it on
 
-The single highest-leverage move you can make is probably in your dependabot / renovate configuration. This covers the ecosystems that have no native option (Composer, NuGet, Maven). Regrettably this cannot be set at Enterprise level, and must be configured per repository. Set a cooldown once in `.github/dependabot.yml` and it applies across managers:
+The best move you can make is probably in your dependabot / renovate configuration. This covers the ecosystems that have no native option (Composer, NuGet, Maven). Regrettably this cannot be set at Enterprise level, and must be configured per repository. Set a cooldown once in `.github/dependabot.yml` and it applies across managers:
 
 ```yaml
 # .github/dependabot.yml
