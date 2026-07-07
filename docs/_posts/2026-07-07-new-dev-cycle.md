@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "What are we even doing?"
+title: "The problem is the source"
 date: 2026-07-07 21:00:00 +0200
 category: architecture ai
 author: Tomas Ekeli
@@ -31,7 +31,7 @@ I think there is a pattern to this. Whenever we get a reliable and checkable tra
 
 ## Ethics of the tools
 
-The tools that even make this next step thinkable are the large language models (LLMs), and they come with serious ethical concerns: how they were trained, who owns and runs them, what it costs the environment to run them. And even more worrisome: what they do to us as practitioners. I have written about this in [On the Ethics of Using LLMs](/2026/07/07/on-the-ethics-of-using-LLMs.html), so I will not repeat it all here. My conclusion there was these problems spring mostly from the hyper-capitalist structure the tools (and we) exist in. I choose to use the tools deliberately within that structure. The rest of this post assumes that choice. If you are not comfortable with the use of LLMs this methodology will not fit you, and I respect that.
+The tools that even make this next step thinkable are the large language models (LLMs), and they come with serious ethical concerns: how they were trained, who owns and runs them, what it costs the environment to run them. And even more worrisome: what they do to us as practitioners. I have written about this in [On the Ethics of Using LLMs](/ai/2026/07/07/on-the-ethics-of-using-LLMs.html), so I will not repeat it all here. My conclusion there was these problems spring mostly from the hyper-capitalist structure the tools (and we) exist in. I choose to use the tools deliberately within that structure. The rest of this post assumes that choice. If you are not comfortable with the use of LLMs this methodology will not fit you, and I respect that.
 
 ## A new kind of cycle
 
