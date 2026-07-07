@@ -51,9 +51,11 @@ There are parallels here to other tools. The people who produced images with cam
 
 ## What can we do?
 
-What we *can* do is use the tools deliberately: know what leaves our machines, distrust the output until it passes muster, and keep the knowledge and the judgement ours. It is our duty to use these tools in the service of human-centric goals, not as accelerators of exploitation!
+We can always refuse to use these tools, but we should not ignore them. We will all interact with the output from them, whether we want to or not. They are everywhere. *This post was written by me, but I used models to help check my grammar and tone.*
 
-If such tool use disqualifies my arguments for you, that is a respectable position. We all have our own values and I will not pretend otherwise.
+What we *should* do is use the tools deliberately: know what leaves our machines, distrust the output until it passes muster, and keep the knowledge and the judgement ours. It is our duty to use these tools in the service of human-centric goals, not as accelerators of exploitation!
+
+If such tool use disqualifies my arguments for you, that is a respectable position. We all have our own values.
 
 It is on each of us to decide whether we can use such tools as these. My problems with them are mainly with the system that produced them. I believe that these tools have arrived and will not go away. I feel like "Pandora opened the box", and we are in a new world. It is on us to use these tools to improve the world and fight the structures that would exploit and extract from us.
 
