@@ -10,6 +10,8 @@ main-image: /assets/img/2027-07-07-on-the-ethics-of-using-LLMs.webp
 main-image-alt: "My co-author for this post - Her Catness Fibi. She didn't contribute much beyond a few meows and a lot of purring, but she was very supportive."
 ---
 
+![{{ page.main-image-alt }}]({{ page.main-image }})
+
 We are going through a large change in how we work with information and knowledge. At the risk of hyperbole, I think this change may be one of the *big* ones, like the invention of writing, printing, computing or the internet. I am talking about the tools we collectively call "artifical intelligence (AI)" and specifically the large language models (LLMs).
 
 There are large ethical concerns using such tools. I have enumerated some [myself](https://plud.re/notes/anr5keffv4uaposr):
