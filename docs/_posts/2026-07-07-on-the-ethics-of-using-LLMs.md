@@ -1,12 +1,12 @@
 ---
 layout: post
 title: On the Ethics of Using LLMs
-date: 2026-07-07 12:15:00 +0200
+date: 2026-07-07 12:15 +0200
 category: ai
 author: Tomas Ekeli
 tags: [ethics, LLMs, AI]
 excerpt: Discussing the ethical considerations of using large language models in development.
-main-image: /assets/img/2026-07-07-on-the-ethics-of-using-LLMs.webp
+main-image: /assets/img/2027-07-07-on-the-ethics-of-using-LLMs.webp
 main-image-alt: "My co-author for this post - Her Catness Fibi. She didn't contribute much beyond a few meows and a lot of purring, but she was very supportive."
 ---
 
