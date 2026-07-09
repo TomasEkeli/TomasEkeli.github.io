@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Sky Orchard — a match-3 in the sunlit clouds</title>
+<style>
+  :root {
+    --panel-bg: rgba(255, 252, 244, 0.94);
+    --panel-edge: #f0dfc0;
+    --ink: #4a3b28;
+    --ink-soft: #8a7658;
+    --accent: #ff9d2e;
+    --accent-deep: #e8820b;
+    --good: #2fae62;
+    --hot: #ff5f4d;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(#bfe7ff, #fdeec9);
+  }
+
+  #app { display: flex; flex-direction: column; height: 100%; }
+
+  /* ---------- panel (title + always-available controls + collapsible HUD) */
+  #panel { flex: 0 0 auto; display: flex; flex-direction: column; min-height: 0; }
+
+  #topbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 6px 10px;
+    background: var(--panel-bg);
+    border-bottom: 2px solid var(--panel-edge);
+  }
+  #topbar h1 {
+    font-size: 1.05rem; margin: 0; letter-spacing: 0.04em;
+    color: var(--accent-deep); white-space: nowrap;
+  }
+  #topbar h1 .sub { color: var(--ink-soft); font-weight: 500; font-size: 0.72rem; display: block; letter-spacing: 0.02em; }
+  #score-strip { display: flex; align-items: baseline; gap: 10px; margin-left: auto; }
+  #score-strip .lbl { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+  #score-num { font-size: 1.25rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #mult-badge {
+    font-weight: 800; font-size: 0.95rem; color: #fff;
+    background: linear-gradient(#ffb43a, #f28a12);
+    border-radius: 999px; padding: 3px 10px; min-width: 44px; text-align: center;
+    box-shadow: 0 2px 4px rgba(160, 100, 0, 0.25);
+    transition: transform 0.15s ease;
+  }
+  #mult-badge.pop { transform: scale(1.25); }
+  .bar-btn {
+    font: inherit; font-weight: 700; font-size: 0.85rem;
+    color: var(--ink); background: #fff;
+    border: 2px solid var(--panel-edge); border-radius: 999px;
+    padding: 8px 14px; min-height: 42px; cursor: pointer;
+    touch-action: manipulation;
+  }
+  .bar-btn:active { transform: translateY(1px); }
+  #new-game { background: linear-gradient(#ffd36b, #ffb43a); border-color: #eda32c; color: #5c3d00; }
+  #new-game.urge { animation: urge 1s ease-in-out infinite; }
+  @keyframes urge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+  /* ---------- HUD (collapsible) */
+  #hud {
+    background: var(--panel-bg);
+    border-bottom: 2px solid var(--panel-edge);
+    padding: 8px 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    max-height: 30vh; overflow-y: auto;
+    font-size: 0.8rem;
+  }
+  #hud.collapsed { display: none; }
+  .hud-block h2 {
+    margin: 0 0 4px; font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--ink-soft);
+  }
+  #featured-banner {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(90deg, #ffe1c2, #ffd0a0);
+    border: 2px solid #ffb066; border-radius: var(--radius);
+    padding: 6px 10px; font-weight: 700;
+  }
+  #featured-banner .flame { font-size: 1.15rem; animation: flick 0.9s ease-in-out infinite; }
+  @keyframes flick { 0%,100% { transform: scale(1) rotate(-4deg); } 50% { transform: scale(1.2) rotate(5deg); } }
+  #featured-banner .mult { color: var(--hot); font-size: 1.05rem; font-weight: 900; }
+
+  #ledger { display: flex; flex-direction: column; gap: 3px; }
+  .ledger-row {
+    display: flex; align-items: center; gap: 7px;
+    padding: 2px 6px; border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ledger-row .nm { flex: 1; }
+  .ledger-row .val { font-weight: 800; }
+  .ledger-row .note { font-size: 0.62rem; color: var(--ink-soft); }
+  .ledger-row.featured { background: #ffe3c9; box-shadow: inset 0 0 0 2px #ffab5e; }
+  .ledger-row.featured .val { color: var(--hot); }
+  .ledger-row.lucky .note.lucky-tag { color: var(--good); font-weight: 800; }
+  .swatch { width: 18px; height: 18px; flex: 0 0 18px; }
+
+  #peek-rail { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  #peek-rail .swatch { width: 22px; height: 22px; flex-basis: 22px; }
+  #lucky-line { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  #stats-block .row { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; font-variant-numeric: tabular-nums; }
+  #stats-block .row b { font-weight: 800; }
+
+  /* ---------- stage / scene */
+  #stage-wrap { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #gem-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  #hit-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #hit-layer .cell {
+    position: absolute; left: 0; top: 0;
+    pointer-events: auto; touch-action: none;
+    border-radius: 20%;
+    cursor: grab;
+  }
+  #fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
+  #banner-layer {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+  }
+
+  .float-gain {
+    position: absolute; transform: translate(-50%, -50%);
+    font-weight: 900; color: #fff;
+    text-shadow: 0 2px 0 rgba(150, 80, 0, 0.55), 0 0 18px rgba(255, 170, 40, 0.9);
+    animation: rise 1.5s ease-out forwards;
+    white-space: nowrap;
+  }
+  .float-gain .bonus-tag {
+    display: block; text-align: center; font-size: 0.5em;
+    color: #fffbe0; background: var(--good);
+    border-radius: 999px; padding: 2px 10px; margin-top: 4px;
+    text-shadow: none; box-shadow: 0 2px 6px rgba(0, 90, 40, 0.4);
+  }
+  @keyframes rise {
+    0% { opacity: 0; transform: translate(-50%, -30%) scale(0.6); }
+    12% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    24% { transform: translate(-50%, -55%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(0.95); }
+  }
+  .cascade-pop {
+    position: absolute; transform: translate(-50%, -50%);
+    font-weight: 900; letter-spacing: 0.05em; color: #fff;
+    text-shadow: 0 2px 0 rgba(120, 40, 120, 0.5), 0 0 16px rgba(255, 120, 220, 0.9);
+    animation: cascpop 0.9s ease-out forwards; white-space: nowrap;
+  }
+  @keyframes cascpop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+    40% { transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -90%) scale(1.05); }
+  }
+  .stage-banner {
+    background: rgba(255, 250, 238, 0.96);
+    border: 3px solid var(--accent); border-radius: 18px;
+    padding: 14px 26px; text-align: center;
+    box-shadow: 0 8px 40px rgba(120, 70, 0, 0.35);
+    animation: bannerin 2.4s ease forwards;
+  }
+  .stage-banner h3 { margin: 0; font-size: 1.4rem; color: var(--accent-deep); }
+  .stage-banner p { margin: 4px 0 0; font-weight: 700; }
+  @keyframes bannerin {
+    0% { opacity: 0; transform: scale(0.7); }
+    10% { opacity: 1; transform: scale(1.06); }
+    18% { transform: scale(1); }
+    82% { opacity: 1; }
+    100% { opacity: 0; transform: scale(0.94); }
+  }
+  #gameover-banner { display: none; }
+  #gameover-banner.show {
+    display: block;
+    background: rgba(255, 250, 238, 0.97);
+    border: 3px solid var(--hot); border-radius: 18px;
+    padding: 16px 28px; text-align: center;
+    box-shadow: 0 8px 40px rgba(120, 20, 0, 0.35);
+  }
+  #gameover-banner h3 { margin: 0; color: var(--hot); font-size: 1.5rem; }
+  #gameover-banner p { margin: 6px 0 0; font-weight: 700; }
+
+  /* ---------- camera bar */
+  #cam-bar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    background: var(--panel-bg);
+    border-top: 2px solid var(--panel-edge);
+  }
+  #cam-bar .cam-hint { font-size: 0.68rem; color: var(--ink-soft); margin-left: auto; text-align: right; }
+  .cam-btn {
+    font: inherit; font-weight: 800; font-size: 0.9rem;
+    background: #fff; color: var(--ink);
+    border: 2px solid var(--panel-edge); border-radius: 10px;
+    min-width: 44px; min-height: 40px; padding: 4px 10px; cursor: pointer;
+    touch-action: manipulation;
+  }
+  .cam-btn:active { transform: translateY(1px); }
+
+  /* ---------- desktop: HUD becomes a left sidebar */
+  @media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+    #app { display: grid; grid-template-columns: 330px 1fr; grid-template-rows: 1fr auto; }
+    #panel { grid-row: 1 / 2; grid-column: 1 / 2; border-right: 2px solid var(--panel-edge); overflow-y: auto; }
+    #cam-bar { grid-row: 2 / 3; grid-column: 1 / 3; border-top: 2px solid var(--panel-edge); }
+    #stage-wrap { grid-row: 1 / 2; grid-column: 2 / 3; }
+    #topbar { flex-direction: column; align-items: stretch; padding: 12px; border-bottom: 0; }
+    #topbar h1 { font-size: 1.5rem; text-align: center; }
+    #topbar h1 .sub { font-size: 0.8rem; }
+    #score-strip { margin: 6px 0 2px; justify-content: center; }
+    #score-num { font-size: 1.8rem; }
+    #topbar .actions { display: flex; gap: 8px; justify-content: center; }
+    #hud { max-height: none; grid-template-columns: 1fr; border-bottom: 0; font-size: 0.88rem; }
+  }
+  #topbar .actions { display: flex; gap: 8px; }
+  @media (max-width: 480px) {
+    #hud { max-height: 26vh; font-size: 0.72rem; padding: 6px 8px; gap: 6px 8px; }
+    #topbar { padding: 4px 8px; }
+    #topbar h1 { font-size: 0.92rem; }
+    #topbar h1 .sub { display: none; }
+    .bar-btn { padding: 7px 10px; font-size: 0.78rem; }
+    #cam-bar { padding: 4px 8px; }
+    #cam-bar .cam-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="panel">
+    <header id="topbar">
+      <h1>Sky Orchard<span class="sub">match-3 in the sunlit clouds</span></h1>
+      <div id="score-strip">
+        <span class="lbl">Score</span><span id="score-num">0</span>
+        <span id="mult-badge" title="Score multiplier">&times;1</span>
+      </div>
+      <div class="actions">
+        <button id="new-game" class="bar-btn" data-testid="new-game">New Game</button>
+        <button id="hud-toggle" class="bar-btn" data-testid="hud-toggle" aria-expanded="true">Hide HUD</button>
+      </div>
+    </header>
+
+    <section id="hud" data-testid="hud" aria-label="Game information">
+      <div id="featured-banner">
+        <span class="flame">&#128293;</span>
+        <span id="featured-swatch" class="swatch-slot"></span>
+        <span id="featured-text">HOT: &hellip;</span>
+        <span class="mult" id="featured-mult">&times;3</span>
+      </div>
+      <div class="hud-block" id="ledger-block">
+        <h2>Gem values (per gem, live)</h2>
+        <div id="ledger"></div>
+      </div>
+      <div class="hud-block">
+        <h2>Next drops</h2>
+        <div id="peek-rail"></div>
+        <div id="lucky-line">
+          <span class="lbl" style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft)">Lucky drops</span>
+          <span id="lucky-swatch"></span>
+          <span id="lucky-name" style="font-weight:700">&mdash;</span>
+        </div>
+        <div class="hud-block" id="stats-block" style="margin-top:8px">
+          <h2>Standing</h2>
+          <div class="row"><span>Best</span><b id="best-num">0</b></div>
+          <div class="row"><span>Last move</span><b id="lastgain-num">0</b></div>
+          <div class="row"><span>Stage</span><b id="stage-name">1</b></div>
+          <div class="row"><span>Multiplier</span><b id="mult-detail">&times;1</b></div>
+          <div class="row note" style="color:var(--ink-soft);font-size:0.68rem">Match 4+ to grow it; a plain 3 halves it.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <main id="stage-wrap">
+    <canvas id="scene"></canvas>
+    <div id="gem-layer"></div>
+    <div id="hit-layer"></div>
+    <div id="fx-layer"></div>
+    <div id="banner-layer">
+      <div id="gameover-banner">
+        <h3>Out of moves!</h3>
+        <p id="gameover-score"></p>
+        <p style="color:var(--ink-soft)">Press <b>New Game</b> to replant the orchard.</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="cam-bar">
+    <button id="cam-reset" class="cam-btn" title="Reset view">&#8634; View</button>
+    <button id="zoom-out" class="cam-btn" title="Zoom out">&minus;</button>
+    <button id="zoom-in" class="cam-btn" title="Zoom in">+</button>
+    <span class="cam-hint">drag the sky to orbit &middot; pinch or scroll to zoom &middot; slide a gem to swap</span>
+  </div>
+</div>
+<script type="module" src="./render.js"></script>
+</body>
+</html>
