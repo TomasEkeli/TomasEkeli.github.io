@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Zephyr Gardens — a match-3 among the sky isles</title>
+<style>
+  :root {
+    --ink: #1d2b46;
+    --paper: rgba(255, 255, 255, 0.88);
+    --accent: #ff8a3d;
+    --gold: #ffc93c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    background: #8fd6f5;
+    color: var(--ink);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ---------- scene layers ---------- */
+  #scene, #fallback { position: fixed; inset: 0; z-index: 0; }
+  #scene canvas { display: block; }
+  #cells { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+  .hitcell {
+    position: absolute;
+    pointer-events: auto;
+    touch-action: none;
+    /* invisible but pointer-receiving */
+    background: transparent;
+  }
+  .hitcell .hintring {
+    position: absolute; inset: 6%;
+    border: 3px solid rgba(255, 255, 255, 0.95);
+    border-radius: 22%;
+    box-shadow: 0 0 14px rgba(255, 240, 150, 0.9);
+    pointer-events: none;
+    display: none;
+  }
+  .hitcell.hinted .hintring { display: block; animation: hintpulse 1.1s ease-in-out infinite; }
+  @keyframes hintpulse {
+    0%, 100% { transform: scale(0.94) rotate(-1.5deg); opacity: 0.55; }
+    50%      { transform: scale(1.03) rotate(1.5deg);  opacity: 1; }
+  }
+
+  /* ---------- top readout (display only) ---------- */
+  #readout {
+    position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+    z-index: 8; pointer-events: none; text-align: center; width: max-content; max-width: 94vw;
+  }
+  #score {
+    font-size: clamp(26px, 5.4vw, 40px); font-weight: 800; letter-spacing: 0.02em;
+    color: #fff; text-shadow: 0 2px 10px rgba(20, 60, 90, 0.55);
+  }
+  #bestTop {
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.92);
+    text-shadow: 0 1px 6px rgba(20, 60, 90, 0.6); margin-top: -2px;
+  }
+  #stripe {
+    margin-top: 5px; display: flex; gap: 6px; justify-content: center; align-items: center;
+    flex-wrap: wrap; font-size: 11.5px; font-weight: 700;
+  }
+  .pill {
+    background: var(--paper); border-radius: 999px; padding: 3px 9px;
+    box-shadow: 0 2px 6px rgba(20, 50, 80, 0.25);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .pill.hot   { background: linear-gradient(120deg, #ffe259, #ffa751); color: #7a3300; }
+  .pill.lucky { background: linear-gradient(120deg, #c2ffd8, #46c6a5); color: #0b4f3a; }
+  .chip { display: inline-block; width: 13px; height: 13px; flex: none; }
+
+  /* ---------- gem shape chips (shared: ledger, peek, banners) ---------- */
+  .shape-0 { border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #fff8 0 18%, transparent 40%), var(--gc, #ffc93c); }
+  .shape-1 { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    background: linear-gradient(150deg, #ffffff66, transparent 55%), var(--gc, #3d9bff); }
+  .shape-2 { clip-path: polygon(50% 2%, 94% 98%, 6% 98%);
+    background: linear-gradient(150deg, #ffffff66, transparent 55%), var(--gc, #ff5d8f); }
+  .shape-3 { border-radius: 50%;
+    background: radial-gradient(closest-side, transparent 42%, var(--gc, #35d461) 46%); }
+  .shape-4 { border-radius: 14%;
+    background: linear-gradient(150deg, #ffffff5c, transparent 60%), var(--gc, #a86bff); }
+  .shape-5 { clip-path: polygon(25% 3%, 75% 3%, 98% 50%, 75% 97%, 25% 97%, 2% 50%);
+    background: linear-gradient(150deg, #ffffff5c, transparent 60%), var(--gc, #ff7a2f); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    position: fixed; z-index: 10;
+    min-width: 46px; min-height: 46px;
+    border: none; border-radius: 14px;
+    background: var(--paper); color: var(--ink);
+    font: inherit; font-size: 14px; font-weight: 800;
+    padding: 8px 13px;
+    box-shadow: 0 3px 10px rgba(20, 50, 80, 0.3);
+    cursor: pointer; touch-action: manipulation;
+  }
+  .btn:active { transform: scale(0.96); }
+  #newGame { top: 10px; left: 10px; background: linear-gradient(135deg, #ff9d4d, #ff6b6b); color: #fff; }
+  #newGame.urge { animation: urge 1s ease-in-out infinite; }
+  @keyframes urge { 0%,100% { box-shadow: 0 3px 10px rgba(20,50,80,.3);} 50% { box-shadow: 0 0 22px 6px rgba(255,170,60,.85);} }
+  #soundToggle { top: 10px; right: 10px; }
+  #soundToggle[aria-pressed="false"] { opacity: 0.65; }
+  #resetView { top: 64px; right: 10px; }
+  #hudToggle { bottom: 10px; left: 10px; }
+
+  /* ---------- HUD (collapsed by default) ---------- */
+  #hud {
+    position: fixed; left: 10px; bottom: 64px; z-index: 10;
+    width: 178px; height: 30px; overflow: hidden;
+    background: var(--paper); border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(20, 50, 80, 0.35);
+    padding: 5px 10px; font-size: 12.5px;
+    transition: width 0.22s ease, height 0.22s ease;
+  }
+  #hud.open {
+    width: min(330px, calc(100vw - 20px));
+    height: auto; max-height: min(62vh, 480px);
+    overflow-y: auto; padding: 12px 14px;
+  }
+  #hud .mini { font-weight: 800; white-space: nowrap; opacity: 0.85; }
+  #hud.open .mini { display: none; }
+  #hud .full { display: none; }
+  #hud.open .full { display: block; }
+  #hud h2 { font-size: 14px; margin-bottom: 6px; }
+  #hud h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin: 10px 0 4px; opacity: 0.7; }
+  .ledger-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0; font-weight: 600;
+  }
+  .ledger-row .chip { width: 17px; height: 17px; }
+  .ledger-row .val { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 9.5px; font-weight: 900; border-radius: 6px; padding: 1px 5px; }
+  .tag.hot { background: #ffb347; color: #6b2d00; }
+  .tag.lucky { background: #56d9a0; color: #073f2c; }
+  #peekRow { display: flex; gap: 6px; align-items: center; }
+  #peekRow .chip { width: 18px; height: 18px; }
+  #hud .note { font-size: 10.5px; opacity: 0.7; margin-top: 2px; }
+
+  /* ---------- fx layer ---------- */
+  #fx { position: fixed; inset: 0; z-index: 9; pointer-events: none; overflow: hidden; }
+  .gainpop {
+    position: absolute; left: 50%; top: 34%;
+    transform: translate(-50%, 0);
+    text-align: center;
+    animation: gainfloat 1.5s ease-out forwards;
+  }
+  .gainpop .n {
+    font-size: clamp(34px, 7vw, 54px); font-weight: 900; color: #fff;
+    text-shadow: 0 0 18px rgba(255, 180, 60, 0.95), 0 3px 8px rgba(30, 40, 80, 0.6);
+  }
+  .gainpop .b {
+    display: block; font-size: clamp(15px, 3vw, 20px); font-weight: 900;
+    color: #aef7c8; text-shadow: 0 0 12px rgba(30, 220, 130, 0.9), 0 2px 5px rgba(20,40,60,.7);
+  }
+  @keyframes gainfloat {
+    0% { opacity: 0; transform: translate(-50%, 22px) scale(0.6); }
+    12% { opacity: 1; transform: translate(-50%, 0) scale(1.12); }
+    24% { transform: translate(-50%, -6px) scale(1); }
+    78% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -66px) scale(0.94); }
+  }
+  .cascadetag {
+    position: absolute; left: 50%; top: 55%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(20px, 4.6vw, 34px); font-weight: 900; letter-spacing: 0.06em;
+    color: #fff; text-shadow: 0 0 16px rgba(90, 200, 255, 1), 0 2px 6px rgba(20,40,80,.6);
+    animation: cascpop 0.7s ease-out forwards;
+  }
+  @keyframes cascpop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    25% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+    100% { opacity: 0; transform: translate(-50%, -90%) scale(1); }
+  }
+  #banner {
+    position: absolute; left: 50%; top: 42%;
+    transform: translate(-50%, -50%);
+    text-align: center; display: none;
+  }
+  #banner.show { display: block; animation: bannerpop 2s ease forwards; }
+  #banner .big {
+    font-size: clamp(30px, 7vw, 52px); font-weight: 900; color: #fff;
+    text-shadow: 0 0 24px rgba(255, 220, 120, 1), 0 4px 12px rgba(30, 40, 80, 0.65);
+  }
+  #banner .sub { font-size: clamp(14px, 3vw, 20px); font-weight: 800; color: #fff; text-shadow: 0 2px 8px rgba(30,40,80,.7); }
+  @keyframes bannerpop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    12% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -64%) scale(1); }
+  }
+  #flash {
+    position: absolute; inset: 0; background: #fff; opacity: 0; display: none;
+  }
+  #flash.show { display: block; animation: flashfade 0.7s ease-out forwards; }
+  @keyframes flashfade { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+  #gameover {
+    position: absolute; left: 50%; top: 40%;
+    transform: translate(-50%, -50%);
+    display: none; text-align: center;
+    background: rgba(29, 43, 70, 0.82); color: #fff;
+    padding: 20px 30px; border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(10, 25, 50, 0.5);
+  }
+  #gameover.show { display: block; }
+  #gameover .t { font-size: clamp(24px, 5vw, 36px); font-weight: 900; }
+  #gameover .s { font-size: 15px; font-weight: 700; margin-top: 6px; opacity: 0.9; }
+
+  /* ---------- CSS fallback renderer ---------- */
+  #fallback { display: none; }
+  #fallback.active { display: block; }
+  #fbSky { position: absolute; inset: 0;
+    background: linear-gradient(var(--skyTop, #4db8ee), var(--skyBot, #cdeffb) 62%, var(--ground, #7ed489) 62.2%); }
+  .fbCloud { position: absolute; background: rgba(255,255,255,0.92); border-radius: 999px;
+    filter: blur(1px); animation: clouddrift linear infinite; }
+  @keyframes clouddrift { from { transform: translateX(-16vw); } to { transform: translateX(116vw); } }
+  #fbSun { position: absolute; top: 7%; right: 12%; width: 74px; height: 74px; border-radius: 50%;
+    background: radial-gradient(circle, #fff9e0, #ffd75e 55%, rgba(255,215,94,0) 72%); }
+  #fbWrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    perspective: 1150px; }
+  #fbBoard {
+    position: relative;
+    transform: rotateX(var(--fbTilt, 24deg)) scale(var(--fbZoom, 1));
+    transform-style: preserve-3d;
+    border-radius: 18px;
+    background: var(--boardFrame, #ffb347);
+    box-shadow: 0 24px 44px rgba(20, 50, 90, 0.4), inset 0 0 0 5px rgba(255, 255, 255, 0.28);
+    transition: transform 0.18s ease-out;
+  }
+  .fbSlot { position: absolute; border-radius: 16%; }
+  .fbGem { position: absolute; will-change: transform, top, left; }
+  .fbGem .body { position: absolute; inset: 0; animation: gembob 3.2s ease-in-out infinite; }
+  @keyframes gembob { 0%,100% { transform: translateY(0) rotate(-2deg);} 50% { transform: translateY(-5%) rotate(2deg);} }
+  .fbGem.clearing .body { animation: gemclear 0.18s ease-in forwards; }
+  @keyframes gemclear { 0% { transform: scale(1);} 35% { transform: scale(1.35); filter: brightness(1.8);} 100% { transform: scale(0); opacity: 0; } }
+
+  @media (max-width: 480px) {
+    #resetView { top: 64px; }
+    #hud.open { width: calc(100vw - 20px); }
+  }
+</style>
+</head>
+<body>
+  <div id="scene"></div>
+
+  <div id="fallback">
+    <div id="fbSky"></div>
+    <div id="fbSun"></div>
+    <div id="fbWrap"><div id="fbBoard"></div></div>
+  </div>
+
+  <div id="cells"></div>
+
+  <div id="readout">
+    <div id="score">0</div>
+    <div id="bestTop">BEST 0</div>
+    <div id="stripe">
+      <span class="pill" id="multPill">×1</span>
+      <span class="pill hot" id="hotPill"><i class="chip shape-0"></i>HOT ×3</span>
+      <span class="pill lucky" id="luckyPill">LUCKY —</span>
+      <span class="pill" id="peekPill">NEXT</span>
+    </div>
+  </div>
+
+  <div id="fx">
+    <div id="flash"></div>
+    <div id="banner"><div class="big"></div><div class="sub"></div></div>
+    <div id="gameover"><div class="t">Out of moves!</div><div class="s"></div></div>
+  </div>
+
+  <button class="btn" id="newGame" data-testid="new-game" title="Start a new game">New Game</button>
+  <button class="btn" id="soundToggle" data-testid="sound-toggle" aria-pressed="true" title="Sound on/off">🔊</button>
+  <button class="btn" id="resetView" title="Reset view">🎯 View</button>
+  <button class="btn" id="hudToggle" data-testid="hud-toggle" title="Show ledger &amp; stats">📒 Ledger</button>
+
+  <aside id="hud" data-testid="hud">
+    <div class="mini">📒 gem values &amp; stats</div>
+    <div class="full">
+      <h2>Gem ledger</h2>
+      <div id="ledger"></div>
+      <h3>Next drops</h3>
+      <div id="peekRow"></div>
+      <div class="note">The drops lean toward your last-cleared colour (LUCKY).</div>
+      <h3>Multiplier</h3>
+      <div id="multLine" class="ledger-row"></div>
+      <div class="note">Match 4+ to double it and beyond; a plain 3-match halves it.</div>
+      <h3>Stage</h3>
+      <div id="stageLine" class="ledger-row"></div>
+      <h3>Best score</h3>
+      <div id="bestLine" class="ledger-row"></div>
+    </div>
+  </aside>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

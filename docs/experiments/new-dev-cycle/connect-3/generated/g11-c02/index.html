@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gem Fiesta — Plaza del Sol</title>
+<style>
+  :root {
+    --skyTop: #3aa7ff;
+    --skyHor: #eafaff;
+    --sea: #18b2c9;
+    --ink: #16324c;
+    --accent: #ff6a4d;
+    --gold: #ffc22e;
+    --pink: #ee4fa8;
+    --panel: rgba(12, 36, 64, 0.86);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--skyTop) 0%, var(--skyHor) 62%, var(--sea) 63%, #0d7f95 100%);
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+
+  /* ---------- scene ---------- */
+  #scene { position: fixed; inset: 0; z-index: 0; }
+  #scene canvas { display: block; touch-action: none; }
+
+  /* ---------- hit cells ---------- */
+  #hits { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+  .hitcell {
+    position: absolute;
+    pointer-events: auto;
+    touch-action: none;
+    cursor: grab;
+    background: transparent;
+    border-radius: 12%;
+  }
+  .hitcell:active { cursor: grabbing; }
+
+  /* ---------- top readout (display-only, never intercepts) ---------- */
+  #readout {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+    pointer-events: none;
+    padding: 8px 12px 4px;
+    display: flex; flex-direction: column; gap: 3px;
+    text-shadow: 0 1px 3px rgba(10, 30, 60, .55);
+  }
+  #row1 { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-right: 230px; }
+  #title { font-weight: 800; letter-spacing: .12em; font-size: 15px; color: #fff; }
+  #title em { color: var(--gold); font-style: normal; }
+  .stat { font-size: 13px; font-weight: 600; opacity: .95; }
+  .stat b { font-size: 17px; color: #fff; }
+  #chips, #ledger-mini { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-right: 210px; }
+  .chip {
+    font-size: 11px; font-weight: 700; letter-spacing: .03em;
+    background: rgba(10, 34, 66, .62); border-radius: 999px; padding: 3px 9px;
+    border: 1px solid rgba(255, 255, 255, .25);
+  }
+  .chip.hot { background: linear-gradient(90deg, #ff6a4d, #d8342a); box-shadow: 0 0 12px rgba(255, 106, 77, .8); animation: hotpulse 1.4s infinite; }
+  .chip.lucky { background: rgba(31, 214, 149, .4); border-color: rgba(31, 214, 149, .8); }
+  .chip.mult { background: rgba(255, 194, 46, .3); border-color: var(--gold); color: #fff; }
+  @keyframes hotpulse { 0%,100% { box-shadow: 0 0 6px rgba(255,106,77,.5);} 50% { box-shadow: 0 0 16px rgba(255,106,77,1);} }
+  .vchip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700;
+    background: rgba(10, 34, 66, .55); border-radius: 999px; padding: 2px 8px 2px 4px;
+    border: 1px solid rgba(255,255,255,.2);
+  }
+  .vchip.feat { border-color: var(--gold); box-shadow: 0 0 8px rgba(255,194,46,.7); }
+  .swatch { width: 13px; height: 13px; display: inline-block; flex: none; }
+  .lbl { font-size: 10px; font-weight: 800; opacity: .8; letter-spacing: .08em; margin-right: 2px; }
+
+  /* ---------- controls (interactive, top-right margin) ---------- */
+  #controls {
+    position: fixed; top: 8px; right: 8px; z-index: 7;
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;
+    max-width: 220px;
+  }
+  #controls button {
+    pointer-events: auto;
+    font: inherit; font-size: 13px; font-weight: 700;
+    color: #fff; background: var(--panel);
+    border: 1px solid rgba(255,255,255,.35); border-radius: 10px;
+    padding: 9px 12px; min-width: 42px; min-height: 40px;
+    cursor: pointer; touch-action: manipulation;
+    box-shadow: 0 2px 8px rgba(6, 20, 40, .35);
+  }
+  #controls button:hover { background: rgba(28, 62, 104, .92); }
+  #newGameBtn { background: linear-gradient(180deg, #ff7a52, #e14b2e) !important; border-color: #ffb195 !important; }
+
+  /* ---------- HUD bottom sheet (collapsed by default) ---------- */
+  #hud {
+    position: fixed; z-index: 9;
+    left: 50%; transform: translateX(-50%);
+    bottom: 6px; width: min(640px, 94vw);
+    height: 16px; overflow: hidden;
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,.3); border-radius: 12px;
+    transition: height .22s ease;
+    box-shadow: 0 4px 18px rgba(6, 20, 40, .4);
+  }
+  #hud .grab { height: 16px; display: flex; align-items: center; justify-content: center; }
+  #hud .grab i { width: 52px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.5); }
+  #hud.open { height: min(46vh, 400px); }
+  #hud-inner { padding: 4px 14px 14px; overflow-y: auto; height: calc(100% - 16px); font-size: 13px; }
+  #hud-inner h3 { font-size: 11px; letter-spacing: .14em; color: var(--gold); margin: 10px 0 5px; }
+  .ledger-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .ledger-row .swatch { width: 18px; height: 18px; }
+  .ledger-row .name { width: 96px; font-weight: 700; }
+  .ledger-row .val { font-weight: 800; color: #ffe9a8; width: 84px; }
+  .tag { font-size: 10px; font-weight: 800; border-radius: 6px; padding: 1px 6px; }
+  .tag.hot { background: #ff6a4d; }
+  .tag.lucky { background: #14a97c; }
+  #peek-rail { display: flex; gap: 6px; align-items: center; }
+  #peek-rail .swatch { width: 20px; height: 20px; }
+  #hud-stats { line-height: 1.55; opacity: .95; }
+  #hud-help { margin-top: 8px; font-size: 12px; opacity: .75; line-height: 1.5; }
+
+  /* ---------- popups ---------- */
+  #popups { position: fixed; inset: 0; z-index: 8; pointer-events: none; overflow: hidden; }
+  .gain-pop {
+    position: absolute; left: 50%; top: 42%;
+    transform: translate(-50%, -50%);
+    font-weight: 900; color: #fff;
+    -webkit-text-stroke: 2px rgba(180, 80, 0, .9);
+    text-shadow: 0 3px 0 rgba(160, 60, 0, .6), 0 6px 22px rgba(255, 170, 0, .8);
+    animation: gainfloat 1.6s ease-out forwards;
+  }
+  @keyframes gainfloat {
+    0% { opacity: 0; transform: translate(-50%, -30%) scale(.5); }
+    12% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    24% { transform: translate(-50%, -52%) scale(1); }
+    78% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -120%) scale(.95); }
+  }
+  .bonus-pop {
+    position: absolute; left: 50%; top: 52%;
+    transform: translate(-50%, -50%);
+    font-weight: 900; font-size: 22px; color: #fff;
+    background: linear-gradient(90deg, var(--pink), #b03df0);
+    padding: 5px 16px; border-radius: 999px;
+    box-shadow: 0 0 20px rgba(238, 79, 168, .9);
+    animation: gainfloat 1.8s ease-out forwards;
+  }
+  .cascade-pop {
+    position: absolute; left: 50%; top: 26%;
+    transform: translate(-50%, -50%);
+    font-weight: 900; letter-spacing: .08em; color: var(--gold);
+    -webkit-text-stroke: 1.5px rgba(140, 60, 0, .85);
+    text-shadow: 0 0 24px rgba(255, 194, 46, .95);
+    animation: cascadezoom .9s ease-out forwards;
+  }
+  @keyframes cascadezoom {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+    18% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    30% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(1.06); }
+  }
+  #stage-banner {
+    position: absolute; left: 0; right: 0; top: 30%;
+    text-align: center; padding: 18px 8px;
+    background: linear-gradient(90deg, transparent, rgba(20, 40, 90, .82), transparent);
+    opacity: 0; pointer-events: none;
+  }
+  #stage-banner.show { animation: stageflash 2.4s ease forwards; }
+  @keyframes stageflash {
+    0% { opacity: 0; transform: scale(.85); }
+    12% { opacity: 1; transform: scale(1.04); }
+    20% { transform: scale(1); }
+    82% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  #stage-banner .big { font-size: clamp(24px, 6vw, 44px); font-weight: 900; letter-spacing: .1em; color: var(--gold); text-shadow: 0 2px 14px rgba(0,0,0,.5); }
+  #stage-banner .sub { font-size: clamp(13px, 3vw, 18px); font-weight: 700; margin-top: 6px; }
+
+  /* ---------- game over ---------- */
+  #gameover { position: fixed; inset: 0; z-index: 10; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+  #gameover[hidden] { display: none; }
+  #gameover .card {
+    pointer-events: auto;
+    background: var(--panel); border: 2px solid var(--gold);
+    border-radius: 18px; padding: 26px 34px; text-align: center;
+    box-shadow: 0 12px 50px rgba(6, 16, 36, .6);
+  }
+  #gameover h2 { font-size: 26px; letter-spacing: .1em; color: var(--gold); margin-bottom: 6px; }
+  #gameover p { margin-bottom: 16px; font-weight: 600; }
+  #gameover button {
+    font: inherit; font-weight: 800; font-size: 15px; color: #fff;
+    background: linear-gradient(180deg, #ff7a52, #e14b2e);
+    border: 1px solid #ffb195; border-radius: 12px; padding: 12px 26px; cursor: pointer;
+  }
+
+  /* ---------- DOM fallback world ---------- */
+  #scene.dom-mode { display: flex; align-items: center; justify-content: center; padding: 118px 10px 56px; }
+  #dom-sun { position: absolute; top: 6%; left: 12%; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, #fff7d8 0%, #ffdf7a 45%, rgba(255, 223, 122, 0) 72%); filter: blur(1px); }
+  #dom-flags { position: absolute; top: 0; left: 0; right: 0; height: 34px; opacity: .95;
+    background: repeating-linear-gradient(90deg, #ff6a4d 0 40px, #ffc22e 40px 80px, #35a2ff 80px 120px, #1fd695 120px 160px, #ee4fa8 160px 200px, #9d6bff 200px 240px);
+  }
+  #dom-tilt { perspective: 1100px; }
+  #dom-board {
+    position: relative;
+    width: var(--bs); height: var(--bs);
+    border-radius: 14px;
+    border: 10px solid #e1542f;
+    outline: 3px solid #ffc22e;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 calc(var(--bs) / 8 - 20px), rgba(9, 30, 96, .28) 0 calc(var(--bs) / 8)),
+      repeating-linear-gradient(90deg, #2f6ef2 0 calc(var(--bs) / 8), #1a4fd0 0 calc(var(--bs) / 4));
+    box-shadow: 0 30px 60px rgba(10, 30, 70, .45), inset 0 0 40px rgba(255, 255, 255, .12);
+    overflow: hidden;
+    transform-style: preserve-3d;
+  }
+  .gem { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 2; will-change: transform; }
+  .gem-body { width: 100%; height: 100%; position: relative; animation: gembob 2.6s ease-in-out infinite; }
+  @keyframes gembob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6%) } }
+  .gem-shape { width: 100%; height: 100%; }
+  .gem-body.hinting { animation: hintwig .7s ease-in-out infinite; }
+  @keyframes hintwig { 0%,100% { transform: translateY(0) rotate(0deg) scale(1);} 25% { transform: translateY(-8%) rotate(-6deg) scale(1.06);} 75% { transform: translateY(-8%) rotate(6deg) scale(1.06);} }
+  .gem-body.featured .gem-shape { filter: drop-shadow(0 0 10px #ffc22e) brightness(1.12); }
+  .spark { position: absolute; width: 9px; height: 9px; border-radius: 50%; pointer-events: none; z-index: 3;
+    animation: sparkfly .55s ease-out forwards; }
+  @keyframes sparkfly {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(.3); }
+  }
+  .domcell { border-radius: 10%; }
+
+  @media (max-width: 640px) {
+    #row1 { padding-right: 118px; }
+    #chips, #ledger-mini { padding-right: 0; }
+    #controls { max-width: 110px; }
+    #controls button { padding: 8px 9px; font-size: 12px; }
+    #title { font-size: 12px; }
+    .stat b { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+  <div id="scene"></div>
+  <div id="hits"></div>
+
+  <div id="readout" aria-hidden="true">
+    <div id="row1">
+      <span id="title">GEM <em>FIESTA</em></span>
+      <span class="stat">SCORE <b id="scoreEl">0</b></span>
+      <span class="stat">BEST <b id="bestEl">0</b></span>
+      <span class="stat" id="gainEl" style="color:var(--gold)"></span>
+    </div>
+    <div id="chips">
+      <span class="chip mult" id="multChip">×1 MULT</span>
+      <span class="chip hot" id="hotChip">HOT</span>
+      <span class="chip lucky" id="luckyChip">LUCKY —</span>
+      <span class="chip" id="stageChip">PLAZA DEL SOL</span>
+    </div>
+    <div id="ledger-mini"></div>
+  </div>
+
+  <div id="controls">
+    <button data-testid="new-game" id="newGameBtn" title="Start a new game">New Game</button>
+    <button data-testid="sound-toggle" id="soundBtn" aria-pressed="true" title="Mute / unmute">&#128266;</button>
+    <button id="resetViewBtn" title="Reset view">&#8982;</button>
+    <button data-testid="hud-toggle" id="hudBtn" aria-expanded="false" title="Ledger &amp; details">Ledger</button>
+  </div>
+
+  <div id="hud" data-testid="hud">
+    <div class="grab"><i></i></div>
+    <div id="hud-inner"></div>
+  </div>
+
+  <div id="popups">
+    <div id="stage-banner"></div>
+  </div>
+
+  <div id="gameover" hidden>
+    <div class="card">
+      <h2>¡SE ACABÓ!</h2>
+      <p>No moves left on the plaza.</p>
+      <p class="stat">Final score: <b id="finalScore">0</b></p>
+      <button id="goNewGame">Play again</button>
+    </div>
+  </div>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>
