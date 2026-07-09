@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tropical Sunset Match - Bejeweled</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      max-width: 500px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      color: white;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .score-info {
+      display: flex;
+      gap: 20px;
+    }
+
+    .score-label, .best-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+
+    .score-value, .best-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .stage-indicator {
+      text-align: right;
+    }
+
+    .stage-number {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .stage-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ff9e64;
+    }
+
+    .board-container {
+      position: relative;
+      width: 480px;
+      height: 480px;
+      margin: 20px 0;
+    }
+
+    .board {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 4px;
+      padding: 12px;
+      background: linear-gradient(135deg, #ff9e64 0%, #ffd89b 50%, #87ceeb 100%);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                  inset 0 2px 8px rgba(255, 255, 255, 0.2);
+      border: 3px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gem {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      cursor: grab;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s ease-out, filter 0.1s ease-out;
+      box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+                  inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+                  0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .gem:hover {
+      transform: scale(0.95);
+      filter: brightness(1.1);
+    }
+
+    .gem:active {
+      cursor: grabbing;
+      transform: scale(0.9);
+    }
+
+    /* Gem shapes */
+    .gem-coral { /* circle - default */
+      background: radial-gradient(circle at 35% 35%, #ff6b6b, #c92a2a) !important;
+    }
+
+    .gem-orange { /* square/cube */
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff9e64 0%, #f39c12 100%) !important;
+      box-shadow: inset -1px -1px 4px rgba(0, 0, 0, 0.4),
+                  inset 1px 1px 4px rgba(255, 255, 255, 0.4),
+                  0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .gem-yellow { /* triangle */
+      border-radius: 0%;
+      width: 0;
+      height: 0;
+      margin: auto;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-bottom: 50px solid #ffd700;
+      position: relative;
+      background: transparent !important;
+      box-shadow: none;
+    }
+
+    .gem-pink { /* diamond */
+      border-radius: 0%;
+      width: 45px;
+      height: 45px;
+      transform: rotate(45deg) scale(0.8);
+      background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%) !important;
+      position: relative;
+      box-shadow: inset -1px -1px 4px rgba(0, 0, 0, 0.4),
+                  inset 1px 1px 4px rgba(255, 255, 255, 0.3),
+                  0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .gem-purple { /* pentagon */
+      width: 45px;
+      height: 45px;
+      position: relative;
+      margin: auto;
+      background: linear-gradient(135deg, #9370db 0%, #6a0dad 100%) !important;
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+      box-shadow: inset -1px -1px 4px rgba(0, 0, 0, 0.4),
+                  inset 1px 1px 4px rgba(255, 255, 255, 0.3),
+                  0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .gem-blue { /* star */
+      width: 45px;
+      height: 45px;
+      position: relative;
+      margin: auto;
+      background: linear-gradient(135deg, #4da6ff 0%, #0052cc 100%) !important;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      box-shadow: inset -1px -1px 4px rgba(0, 0, 0, 0.4),
+                  inset 1px 1px 4px rgba(255, 255, 255, 0.3),
+                  0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .gem-facet {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .gem-highlight {
+      position: absolute;
+      top: 10%;
+      left: 20%;
+      width: 25px;
+      height: 25px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0.6;
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+
+    .gem.matched {
+      animation: matchPulse 0.2s ease-out;
+    }
+
+    @keyframes matchPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .gem.hint {
+      animation: hintPulse 0.6s ease-in-out infinite;
+    }
+
+    @keyframes hintPulse {
+      0%, 100% { filter: drop-shadow(0 0 0px rgba(255, 255, 0, 0.5)); }
+      50% { filter: drop-shadow(0 0 15px rgba(255, 255, 0, 0.8)); }
+    }
+
+    .score-popup {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5),
+                   0 0 10px rgba(255, 215, 0, 0.5);
+      pointer-events: none;
+      opacity: 0;
+      animation: floatUp 1.5s ease-out forwards;
+    }
+
+    .score-popup.show {
+      animation: floatUp 1.5s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -80px);
+        opacity: 0;
+      }
+    }
+
+    .hint-indicator {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: #ff9e64;
+      opacity: 0;
+      transition: opacity 0.3s;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .hint-indicator.show {
+      opacity: 1;
+    }
+
+    .game-over-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .game-over-content {
+      background: linear-gradient(135deg, #ff9e64 0%, #ffd89b 50%, #87ceeb 100%);
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .game-over-content h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #2c1810;
+    }
+
+    .game-over-content p {
+      font-size: 18px;
+      margin-bottom: 30px;
+      color: #2c1810;
+    }
+
+    .new-game-btn {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7b801 100%);
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .new-game-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .new-game-btn:active {
+      transform: translateY(0);
+    }
+
+    #new-game-top {
+      margin-top: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .board-container {
+        width: 100vw;
+        height: 100vw;
+        max-width: 480px;
+        max-height: 480px;
+      }
+
+      .board {
+        width: 100%;
+        height: 100%;
+      }
+
+      .score-value, .best-value {
+        font-size: 18px;
+      }
+
+      .stage-name {
+        font-size: 14px;
+      }
+    }
+
+    /* Stage transition animation */
+    @keyframes stageTransition {
+      0% { opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { opacity: 0.5; }
+    }
+
+    .board.transitioning {
+      animation: stageTransition 0.5s ease-in-out;
+    }
+
+    /* Color palette for stages - implemented via inline styles on .board */
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+
+  <script type="module">
+    import { initializeGame } from './render.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeGame();
+    });
+  </script>
+</body>
+</html>

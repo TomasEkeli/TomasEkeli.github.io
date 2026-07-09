@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Starfall &mdash; a cosmic match-3</title>
+<style>
+  :root {
+    --ink: #eef2ff;
+    --board-size: min(92vw, 560px);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    font-family: "Segoe UI", "Avenir Next", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 15%, rgba(120, 90, 220, 0.35), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 20%, rgba(60, 160, 220, 0.28), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(40, 20, 90, 0.55), transparent 65%),
+      linear-gradient(160deg, #05061a 0%, #0a0d2e 45%, #0e1140 75%, #131a4a 100%);
+    background-attachment: fixed;
+    position: relative;
+  }
+
+  #stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0.6;
+    animation: twinkle linear infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: var(--tw-min, 0.15); transform: scale(1); }
+    50% { opacity: var(--tw-max, 0.9); transform: scale(1.4); }
+  }
+
+  .nebula-drift {
+    position: fixed;
+    inset: -10%;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 40% 25% at 30% 70%, rgba(150, 120, 255, 0.10), transparent 60%),
+                radial-gradient(ellipse 35% 20% at 75% 35%, rgba(90, 200, 255, 0.08), transparent 60%);
+    animation: driftNebula 40s ease-in-out infinite alternate;
+  }
+
+  @keyframes driftNebula {
+    from { transform: translate(0, 0) rotate(0deg); }
+    to { transform: translate(2%, -3%) rotate(3deg); }
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: linear-gradient(120deg, #cfe0ff 0%, #a892ff 45%, #7ee8ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 26px rgba(150, 150, 255, 0.35);
+  }
+
+  .hud {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(15, 18, 50, 0.55);
+    border: 1px solid rgba(170, 190, 255, 0.18);
+    border-radius: 999px;
+    padding: 0.4rem 0.5rem 0.4rem 1.1rem;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  .score-box {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .score-box .label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a9b6e6;
+  }
+
+  #score {
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #ffe58a;
+    text-shadow: 0 0 12px rgba(255, 210, 120, 0.55);
+  }
+
+  #new-game, .cta {
+    font: inherit;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #0a0d2e;
+    background: linear-gradient(135deg, #9fd8ff, #c6a8ff);
+    border: none;
+    border-radius: 999px;
+    padding: 0.5rem 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(140, 150, 255, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  #new-game:hover, .cta:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 5px 18px rgba(160, 170, 255, 0.6);
+  }
+
+  #new-game:active, .cta:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  #board-wrap {
+    position: relative;
+    width: var(--board-size);
+    aspect-ratio: 1;
+    padding: 14px;
+    border-radius: 22px;
+    background: linear-gradient(160deg, rgba(30, 34, 80, 0.75), rgba(10, 12, 40, 0.75));
+    border: 1px solid rgba(180, 195, 255, 0.22);
+    box-shadow:
+      0 18px 45px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 0 40px rgba(110, 110, 220, 0.18);
+    backdrop-filter: blur(3px);
+  }
+
+  #board {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    background:
+      repeating-conic-gradient(from 45deg, rgba(255,255,255,0.025) 0% 25%, transparent 0% 50%) 0 0 / 32px 32px,
+      radial-gradient(ellipse at 50% 0%, rgba(90, 70, 180, 0.25), transparent 70%),
+      #0b0e2c;
+    box-shadow: inset 0 2px 18px rgba(0, 0, 0, 0.65);
+  }
+
+  .slot {
+    position: absolute;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .gem-cell {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 5%;
+    touch-action: none;
+    cursor: grab;
+    will-change: transform;
+  }
+
+  .gem-cell:active {
+    cursor: grabbing;
+  }
+
+  .gem {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
+    transform-origin: 50% 50%;
+    animation: idleFloat var(--dur, 3.2s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
+  .gem-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  @keyframes idleFloat {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.05) rotate(2.5deg); }
+  }
+
+  .gem.clearing {
+    animation: clearPop 0.24s ease-out forwards;
+  }
+
+  @keyframes clearPop {
+    0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5)) brightness(1); opacity: 1; }
+    40% { transform: scale(1.35) rotate(8deg); filter: drop-shadow(0 0 14px rgba(255,255,255,0.9)) brightness(1.8); opacity: 1; }
+    100% { transform: scale(0.2) rotate(20deg); filter: brightness(2.4); opacity: 0; }
+  }
+
+  .gem-cell.hinted .gem {
+    animation: hintPulse 1.15s ease-in-out infinite;
+  }
+
+  @keyframes hintPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5)) brightness(1); }
+    50% { transform: scale(1.09) rotate(-3deg); filter: drop-shadow(0 0 10px rgba(255,255,255,0.75)) brightness(1.35); }
+  }
+
+  #gain-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 5;
+  }
+
+  .gain-pop {
+    position: absolute;
+    top: 38%;
+    font-weight: 800;
+    font-size: clamp(2rem, 8vw, 3rem);
+    color: #ffe58a;
+    text-shadow: 0 0 18px rgba(255, 210, 100, 0.8), 0 0 4px rgba(0,0,0,0.6);
+    animation: gainFloat 1.5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+    white-space: nowrap;
+  }
+
+  .gain-pop .bonus-tag {
+    display: block;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #7ee8ff;
+    text-shadow: 0 0 10px rgba(120, 220, 255, 0.7);
+  }
+
+  @keyframes gainFloat {
+    0% { opacity: 0; transform: translateY(10px) scale(0.7); }
+    15% { opacity: 1; transform: translateY(-6px) scale(1.15); }
+    30% { transform: translateY(-14px) scale(1); }
+    100% { opacity: 0; transform: translateY(-70px) scale(1.05); }
+  }
+
+  #gameover-overlay {
+    position: absolute;
+    inset: 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 8, 24, 0.78);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+    animation: fadeIn 0.3s ease;
+  }
+
+  #gameover-overlay[hidden] { display: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .panel {
+    text-align: center;
+    padding: 1.6rem 2rem;
+    border-radius: 16px;
+    background: linear-gradient(160deg, rgba(40, 44, 100, 0.9), rgba(14, 16, 48, 0.92));
+    border: 1px solid rgba(180, 195, 255, 0.25);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  .panel h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: linear-gradient(120deg, #ffe58a, #ff9fc6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .panel p {
+    margin: 0 0 1rem;
+    color: #b9c3ee;
+    font-size: 0.92rem;
+  }
+
+  footer {
+    color: #7a86bf;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div id="stars"></div>
+  <div class="nebula-drift"></div>
+
+  <div id="app">
+    <header>
+      <h1>Starfall</h1>
+      <div class="hud">
+        <div class="score-box">
+          <span class="label">Score</span>
+          <span id="score">0</span>
+        </div>
+        <button id="new-game" data-testid="new-game" type="button">New Game</button>
+      </div>
+    </header>
+
+    <div id="board-wrap">
+      <div id="board"></div>
+      <div id="gain-layer"></div>
+      <div id="gameover-overlay" hidden>
+        <div class="panel">
+          <h2>Out of Moves</h2>
+          <p>The constellations have settled. No swap remains among the stars.</p>
+          <button class="cta" data-action="restart" type="button">New Game</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>slide a gem into a neighbour to match three or more</footer>
+  </div>
+
+  <script type="module" src="render.js"></script>
+</body>
+</html>

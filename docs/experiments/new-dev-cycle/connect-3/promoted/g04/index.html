@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Emerald Cascade</title>
+<style>
+  :root {
+    --gold: #e0b84b;
+    --gold-bright: #ffd873;
+    --panel: #0e2419;
+    --lead: #100d09;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    color: #eee8d8;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(60, 140, 100, 0.35), transparent 55%),
+      linear-gradient(160deg, #0c3d27 0%, #123324 30%, #1c2420 62%, #14100e 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    /* faint quarry / stone texture via layered radial noise */
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 3px 3px;
+    mix-blend-mode: overlay;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 2rem 1rem;
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--gold-bright);
+    text-shadow:
+      0 0 18px rgba(224, 184, 75, 0.55),
+      0 2px 0 rgba(0,0,0,0.5);
+  }
+
+  #hud {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    padding: 0.35em 1.1em;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(20,40,30,0.9), rgba(10,20,15,0.9));
+    border: 1px solid rgba(224, 184, 75, 0.35);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  #hud .label {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9db8a8;
+  }
+
+  #score {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--gold-bright);
+    font-variant-numeric: tabular-nums;
+  }
+
+  #board-wrap {
+    position: relative;
+    padding: 16px;
+    border-radius: 18px;
+    background:
+      linear-gradient(160deg, #241a10 0%, #14100a 100%);
+    border: 6px solid #0b0805;
+    box-shadow:
+      0 0 0 2px rgba(224, 184, 75, 0.25),
+      0 18px 40px rgba(0, 0, 0, 0.65),
+      0 4px 10px rgba(0, 0, 0, 0.55),
+      inset 0 2px 4px rgba(255, 255, 255, 0.06);
+  }
+
+  #board {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: min(88vw, 520px);
+    height: min(88vw, 520px);
+    background: #0a1a12;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.65), inset 0 0 3px rgba(0,0,0,0.9);
+    touch-action: none;
+    user-select: none;
+  }
+
+  .cell {
+    position: relative;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(255,255,255,0.05), transparent 65%),
+      linear-gradient(160deg, #123424 0%, #0b2016 100%);
+    border: 1px solid #05100a;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+  }
+
+  .gem {
+    position: absolute;
+    inset: 8%;
+    will-change: transform;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.55));
+    animation: idlePulse 3.4s ease-in-out infinite;
+    animation-delay: var(--idle-delay, 0s);
+  }
+
+  .gem .facet {
+    position: absolute;
+    inset: 0;
+  }
+
+  .gem .shine {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.9), rgba(255,255,255,0) 45%);
+    mix-blend-mode: screen;
+    opacity: 0.85;
+  }
+
+  .gem .glint {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.55) 48%, transparent 56%);
+    background-size: 260% 260%;
+    background-position: 120% -20%;
+    mix-blend-mode: screen;
+    opacity: 0;
+    animation: glintSweep 5.5s ease-in-out infinite;
+    animation-delay: var(--idle-delay, 0s);
+  }
+
+  @keyframes idlePulse {
+    0%, 100% { transform: scale(1) rotate(-2deg); }
+    50% { transform: scale(1.045) rotate(2deg); }
+  }
+
+  @keyframes glintSweep {
+    0%, 70%, 100% { opacity: 0; background-position: 120% -20%; }
+    78% { opacity: 0.9; }
+    92% { opacity: 0; background-position: -20% 120%; }
+  }
+
+  .gem.matched {
+    animation: matchPop 0.2s ease-in forwards;
+    z-index: 2;
+  }
+
+  @keyframes matchPop {
+    0% { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.55)) brightness(1); }
+    45% { filter: drop-shadow(0 0 10px rgba(255,255,255,0.9)) brightness(1.9); transform: scale(1.2); }
+    100% { filter: drop-shadow(0 0 4px rgba(255,255,255,0.4)) brightness(2.4); transform: scale(0.15); opacity: 0; }
+  }
+
+  .gem.dragging {
+    z-index: 5;
+  }
+
+  /* Suppress idle keyframe animation on every gem while a gesture or a
+     cascade is in flight — CSS animations win the cascade over inline
+     transforms, so idlePulse/glintSweep would otherwise fight the JS-driven
+     slide/bounce/drop transforms. */
+  #board.no-idle .gem {
+    animation: none;
+  }
+
+  #gain-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .gain-pop {
+    position: absolute;
+    top: 42%;
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
+    font-weight: 800;
+    color: var(--gold-bright);
+    text-shadow:
+      0 0 10px rgba(255, 216, 115, 0.9),
+      0 0 24px rgba(255, 180, 60, 0.6),
+      0 2px 2px rgba(0,0,0,0.6);
+    animation: floatGain 1.3s cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+  }
+
+  @keyframes floatGain {
+    0% { opacity: 0; transform: translateY(10px) scale(0.6); }
+    18% { opacity: 1; transform: translateY(-6px) scale(1.15); }
+    35% { transform: translateY(-14px) scale(1); }
+    100% { opacity: 0; transform: translateY(-70px) scale(1.05); }
+  }
+
+  footer {
+    color: #6f8d7c;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- Gem shapes: shape carries type identity (colour-blind safe) ---- */
+  .shape-circle .facet { border-radius: 50%; }
+  .shape-diamond .facet { clip-path: polygon(50% 2%, 98% 50%, 50% 98%, 2% 50%); }
+  .shape-hexagon .facet { clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%); }
+  .shape-triangle .facet { clip-path: polygon(50% 2%, 96% 92%, 4% 92%); }
+  .shape-pentagon .facet { clip-path: polygon(50% 0%, 100% 38%, 82% 96%, 18% 96%, 0% 38%); }
+  .shape-star .facet {
+    clip-path: polygon(50% 0%, 62% 34%, 98% 34%, 69% 55%, 79% 90%,
+      50% 69%, 21% 90%, 31% 55%, 2% 34%, 38% 34%);
+  }
+
+  .shape-circle .shine, .shape-circle .glint { border-radius: 50%; }
+  .shape-diamond .shine, .shape-diamond .glint { clip-path: polygon(50% 2%, 98% 50%, 50% 98%, 2% 50%); }
+  .shape-hexagon .shine, .shape-hexagon .glint { clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%); }
+  .shape-triangle .shine, .shape-triangle .glint { clip-path: polygon(50% 2%, 96% 92%, 4% 92%); }
+  .shape-pentagon .shine, .shape-pentagon .glint { clip-path: polygon(50% 0%, 100% 38%, 82% 96%, 18% 96%, 0% 38%); }
+  .shape-star .shine, .shape-star .glint {
+    clip-path: polygon(50% 0%, 62% 34%, 98% 34%, 69% 55%, 79% 90%,
+      50% 69%, 21% 90%, 31% 55%, 2% 34%, 38% 34%);
+  }
+
+  /* stained-glass cabochon colours per type */
+  .type-0 .facet { background: linear-gradient(145deg, #4fd68a 0%, #0f7a45 55%, #063a20 100%); box-shadow: inset 0 -6px 9px rgba(0,0,0,0.5), inset 0 4px 6px rgba(255,255,255,0.35); }
+  .type-1 .facet { background: linear-gradient(145deg, #ffce6b 0%, #d98b1e 55%, #7a4708 100%); box-shadow: inset 0 -6px 9px rgba(0,0,0,0.5), inset 0 4px 6px rgba(255,255,255,0.35); }
+  .type-2 .facet { background: linear-gradient(145deg, #ff7a7a 0%, #c22b2b 55%, #6b0f0f 100%); box-shadow: inset 0 -6px 9px rgba(0,0,0,0.5), inset 0 4px 6px rgba(255,255,255,0.35); }
+  .type-3 .facet { background: linear-gradient(145deg, #6fb4ff 0%, #1c5fbf 55%, #0a2c60 100%); box-shadow: inset 0 -6px 9px rgba(0,0,0,0.5), inset 0 4px 6px rgba(255,255,255,0.35); }
+  .type-4 .facet { background: linear-gradient(145deg, #d59bff 0%, #7c30c9 55%, #3c1266 100%); box-shadow: inset 0 -6px 9px rgba(0,0,0,0.5), inset 0 4px 6px rgba(255,255,255,0.35); }
+  .type-5 .facet { background: linear-gradient(145deg, #fff079 0%, #e0b400 55%, #7a5c00 100%); box-shadow: inset 0 -6px 9px rgba(0,0,0,0.5), inset 0 4px 6px rgba(255,255,255,0.35); }
+
+  @media (max-width: 420px) {
+    #board { width: 92vw; height: 92vw; }
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Emerald Cascade</h1>
+      <div id="hud">
+        <span class="label">Score</span>
+        <span id="score">0</span>
+      </div>
+    </header>
+    <div id="board-wrap">
+      <div id="board" role="grid" aria-label="Match-3 board"></div>
+      <div id="gain-layer"></div>
+    </div>
+    <footer>slide a gem into a neighbour to match three or more</footer>
+  </div>
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

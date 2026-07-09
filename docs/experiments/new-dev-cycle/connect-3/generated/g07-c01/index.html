@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Midnight Tempest</title>
+<style>
+  :root {
+    --sky-top: #050912;
+    --sky-mid: #0a1a2c;
+    --sea-1: #0b2a35;
+    --sea-2: #0f3f4c;
+    --flash: rgba(220, 240, 255, 0);
+    --accent: #7fe7ff;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    background: #04070c;
+  }
+
+  #stormscape {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    background: linear-gradient(180deg,
+      var(--sky-top) 0%,
+      var(--sky-mid) 32%,
+      var(--sea-1) 58%,
+      var(--sea-2) 100%);
+    transition: background 1.4s ease;
+  }
+
+  /* distant stars / storm dust for depth up top */
+  #stormscape::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 55% 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 30% 10%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1.5px 1.5px at 60% 25%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1px 1px at 45% 5%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 92% 30%, rgba(255,255,255,.25), transparent);
+    opacity: .8;
+  }
+
+  .cloudband {
+    position: absolute;
+    left: -20%;
+    width: 140%;
+    height: 34%;
+    top: 4%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(20,35,55,.55), transparent 60%),
+                radial-gradient(ellipse at 70% 40%, rgba(15,25,40,.5), transparent 65%),
+                radial-gradient(ellipse at 50% 60%, rgba(30,45,65,.4), transparent 70%);
+    filter: blur(2px);
+    animation: driftClouds 70s linear infinite;
+    opacity: .9;
+  }
+  .cloudband.b2 { top: 12%; height: 26%; animation-duration: 100s; animation-direction: reverse; opacity: .6; }
+
+  @keyframes driftClouds {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-15%); }
+  }
+
+  .rain {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      100deg,
+      rgba(200, 230, 255, 0) 0px,
+      rgba(200, 230, 255, .22) 1px,
+      rgba(200, 230, 255, 0) 3px,
+      rgba(200, 230, 255, 0) 14px
+    );
+    background-size: 100% 220%;
+    animation: fallRain 0.45s linear infinite;
+    opacity: .55;
+    pointer-events: none;
+  }
+  @keyframes fallRain {
+    from { background-position: 0 -220%; }
+    to   { background-position: 0 0%; }
+  }
+
+  .wave-layer {
+    position: absolute;
+    left: -10%;
+    width: 130%;
+    bottom: 0;
+  }
+  .wave-layer svg { display: block; width: 100%; height: auto; }
+  .wave-far   { bottom: 10%; opacity: .55; animation: waveDrift 18s ease-in-out infinite; }
+  .wave-mid   { bottom: 4%;  opacity: .75; animation: waveDrift 12s ease-in-out infinite reverse; }
+  .wave-near  { bottom: -2%; opacity: .95; animation: waveDrift 8s ease-in-out infinite; }
+  @keyframes waveDrift {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    50%      { transform: translateX(-3%) translateY(1.5%); }
+  }
+
+  .foam {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.9), rgba(255,255,255,0) 70%);
+    filter: blur(1px);
+    animation: bob 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) scale(1); opacity: .8; }
+    50%      { transform: translateY(-6px) scale(1.05); opacity: 1; }
+  }
+
+  #lightning-flash {
+    position: fixed;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+    mix-blend-mode: screen;
+  }
+  #lightning-flash.strike { animation: strike 420ms ease-out; }
+  @keyframes strike {
+    0%   { opacity: 0; }
+    4%   { opacity: .85; }
+    10%  { opacity: .1; }
+    16%  { opacity: .6; }
+    24%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  .bolt-crack {
+    position: fixed;
+    top: 0;
+    height: 60vh;
+    width: 3px;
+    z-index: 4;
+    pointer-events: none;
+    filter: drop-shadow(0 0 8px #cdeeff) drop-shadow(0 0 18px #7fe7ff);
+    opacity: 0;
+  }
+  .bolt-crack.strike { animation: boltShow 420ms ease-out; }
+  .bolt-crack svg { width: 100%; height: 100%; overflow: visible; }
+  @keyframes boltShow {
+    0%   { opacity: 0; }
+    5%   { opacity: 1; }
+    14%  { opacity: .2; }
+    20%  { opacity: 1; }
+    35%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  /* ---------- layout ---------- */
+  #app {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 14px 12px 20px;
+    overflow-y: auto;
+  }
+
+  header {
+    text-align: center;
+    color: #eaf6ff;
+    text-shadow: 0 2px 10px rgba(0,0,0,.6);
+  }
+  header h1 {
+    margin: 0;
+    font-size: clamp(22px, 4vw, 34px);
+    letter-spacing: .12em;
+    font-weight: 700;
+    background: linear-gradient(180deg, #eaf9ff, #8fdcff 60%, #47b9e0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 10px rgba(120,220,255,.35));
+  }
+  header .tagline {
+    margin-top: 2px;
+    font-size: 12px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: #9fd3e8;
+    opacity: .8;
+  }
+
+  #hud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+    width: min(94vw, 620px);
+  }
+
+  .hud-card {
+    flex: 1 1 100px;
+    min-width: 92px;
+    background: linear-gradient(160deg, rgba(14,34,46,.85), rgba(6,16,24,.85));
+    border: 1px solid rgba(150,220,255,.18);
+    border-radius: 12px;
+    padding: 7px 10px;
+    text-align: center;
+    color: #d9f2ff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(3px);
+  }
+  .hud-card .label {
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    opacity: .65;
+    margin-bottom: 2px;
+  }
+  .hud-card .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #baf1ff;
+    text-shadow: 0 0 8px rgba(120,220,255,.4);
+  }
+  #multCard .value { color: #ffe28a; text-shadow: 0 0 10px rgba(255,210,110,.6); }
+  #bestCard .value { color: #ffd76b; }
+
+  #featured {
+    flex: 1 1 150px;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(160deg, rgba(60,45,10,.55), rgba(10,10,18,.7));
+    border: 1px solid rgba(255,210,110,.4);
+    border-radius: 12px;
+    padding: 6px 10px;
+    box-shadow: 0 0 18px rgba(255, 200, 90, .25), inset 0 1px 0 rgba(255,255,255,.08);
+    position: relative;
+    overflow: hidden;
+  }
+  #featured.none { opacity: .45; }
+  #featured .glow-pulse {
+    position: absolute;
+    inset: -40%;
+    background: radial-gradient(circle, rgba(255,220,120,.35), transparent 65%);
+    animation: featPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes featPulse {
+    0%, 100% { transform: scale(.85); opacity: .6; }
+    50%      { transform: scale(1.15); opacity: 1; }
+  }
+  #featured .feat-icon {
+    width: 34px; height: 34px; flex: none; position: relative; z-index: 1;
+    filter: drop-shadow(0 0 6px rgba(255,220,130,.8));
+    animation: featSpin 3.5s ease-in-out infinite;
+  }
+  @keyframes featSpin {
+    0%, 100% { transform: rotate(-6deg) scale(1); }
+    50%      { transform: rotate(6deg) scale(1.08); }
+  }
+  #featured .feat-text { position: relative; z-index: 1; text-align: left; }
+  #featured .feat-text .label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #ffdf9e; opacity: .85; }
+  #featured .feat-text .name { font-size: 14px; font-weight: 700; color: #fff4da; }
+  #featured .feat-text .bonus { font-size: 11px; color: #ffe9b0; }
+
+  #stage-banner {
+    position: fixed;
+    top: 14%;
+    left: 50%;
+    transform: translate(-50%, -20px) scale(.94);
+    z-index: 20;
+    text-align: center;
+    padding: 18px 34px;
+    border-radius: 16px;
+    background: linear-gradient(160deg, rgba(10,20,32,.92), rgba(4,10,18,.92));
+    border: 1px solid rgba(150,220,255,.4);
+    box-shadow: 0 0 60px rgba(120,220,255,.35), 0 20px 50px rgba(0,0,0,.6);
+    color: #eaf9ff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  #stage-banner.show {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  #stage-banner .stage-kicker {
+    font-size: 12px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: #8fe2ff;
+    opacity: .85;
+  }
+  #stage-banner .stage-name {
+    font-size: clamp(24px, 5vw, 40px);
+    font-weight: 800;
+    margin-top: 4px;
+    background: linear-gradient(180deg, #ffffff, #a9e6ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  #board-wrap {
+    position: relative;
+    padding: 16px;
+    border-radius: 22px;
+    background:
+      repeating-linear-gradient(90deg, rgba(60,40,25,.9) 0px, rgba(70,48,30,.9) 26px, rgba(50,34,20,.9) 27px, rgba(60,40,25,.9) 52px),
+      linear-gradient(160deg, #3a2a1c, #1c130b);
+    box-shadow:
+      0 30px 60px rgba(0,0,0,.65),
+      0 8px 18px rgba(0,0,0,.5),
+      inset 0 2px 4px rgba(255,255,255,.08),
+      inset 0 -4px 10px rgba(0,0,0,.5),
+      0 0 0 2px rgba(0,0,0,.4),
+      0 0 40px rgba(60,180,220,.12);
+  }
+  #board-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,.55);
+    pointer-events: none;
+  }
+
+  #board {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: min(90vw, 480px);
+    height: min(90vw, 480px);
+    background: linear-gradient(160deg, rgba(4,14,20,.9), rgba(2,8,12,.9));
+    border-radius: 14px;
+    box-shadow: inset 0 0 24px rgba(0,0,0,.7), inset 0 0 0 1px rgba(120,200,230,.15);
+    overflow: visible;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4%;
+  }
+  .cell::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.015);
+  }
+  .cell.dark-tile::before { background: rgba(0,0,0,0.08); }
+
+  .gem {
+    position: absolute;
+    inset: 4%;
+    display: block;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,.55));
+    cursor: grab;
+    will-change: transform;
+    transition: transform .18s cubic-bezier(.34,1.3,.64,1);
+  }
+  .gem.grabbing { cursor: grabbing; transition: none; }
+  .gem.falling { transition: transform .3s cubic-bezier(.55,0,1,.45); }
+
+  .gem-inner {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+  }
+  .gem-inner svg { width: 100%; height: 100%; overflow: visible; }
+  .gem-inner.idle-float { animation: idleFloat 3.8s ease-in-out infinite; }
+  @keyframes idleFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+    50%      { transform: translateY(-4%) rotate(2.5deg) scale(1.02); }
+  }
+  .gem-inner.hint-pulse { animation: hintPulse 1s ease-in-out infinite; }
+  @keyframes hintPulse {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50%      { transform: scale(1.16); filter: brightness(1.4) drop-shadow(0 0 10px rgba(255,255,255,.7)); }
+  }
+  .gem-inner.featured-glow { animation: featGlowPulse 1.3s ease-in-out infinite; }
+  @keyframes featGlowPulse {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(255,214,120,.85)); transform: scale(1); }
+    50%      { filter: drop-shadow(0 0 16px rgba(255,214,120,1)) brightness(1.15); transform: scale(1.07); }
+  }
+  .gem-inner.matched-glow { animation: preClearGlow .2s ease-in-out forwards; }
+  @keyframes preClearGlow {
+    0%   { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) brightness(1); transform: scale(1); }
+    100% { filter: drop-shadow(0 0 16px rgba(255,255,255,1)) brightness(1.7); transform: scale(1.15); }
+  }
+  .gem-inner.clearing { animation: clearPop .38s ease-in forwards; }
+  @keyframes clearPop {
+    0%   { transform: scale(1.15) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 14px rgba(255,255,255,.9)) brightness(1.7); }
+    100% { transform: scale(0.1) rotate(35deg); opacity: 0; filter: drop-shadow(0 0 0 rgba(255,255,255,0)) brightness(2.2); }
+  }
+
+  #popup-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    overflow: visible;
+  }
+  .gain-pop {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    transform: translate(-50%, 0);
+    font-weight: 800;
+    font-size: clamp(30px, 6vw, 52px);
+    color: #baf1ff;
+    text-shadow: 0 0 10px rgba(130,225,255,.8), 0 3px 6px rgba(0,0,0,.6);
+    animation: floatGain 1.5s ease-out forwards;
+    white-space: nowrap;
+  }
+  @keyframes floatGain {
+    0%   { opacity: 0; transform: translate(-50%, 20px) scale(.7); }
+    15%  { opacity: 1; transform: translate(-50%, -10px) scale(1.08); }
+    30%  { transform: translate(-50%, -20px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
+  }
+  .mult-tag {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    transform: translate(-50%, 0);
+    font-weight: 700;
+    font-size: clamp(14px, 2.6vw, 20px);
+    color: #ffe28a;
+    text-shadow: 0 0 8px rgba(255,210,110,.7);
+    animation: floatGain 1.5s ease-out forwards;
+    white-space: nowrap;
+  }
+  .bonus-tag {
+    position: absolute;
+    left: 50%;
+    top: 70%;
+    transform: translate(-50%, 0);
+    font-weight: 800;
+    font-size: clamp(14px, 2.8vw, 22px);
+    color: #ff9ad6;
+    text-shadow: 0 0 10px rgba(255,120,210,.8);
+    animation: floatGain 1.7s ease-out forwards;
+    white-space: nowrap;
+    letter-spacing: .05em;
+  }
+
+  #game-over {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 6, 12, .72);
+    backdrop-filter: blur(3px);
+  }
+  #game-over.show { display: flex; }
+  .over-card {
+    background: linear-gradient(160deg, rgba(14,30,42,.96), rgba(4,10,16,.98));
+    border: 1px solid rgba(150,220,255,.35);
+    border-radius: 20px;
+    padding: 34px 40px;
+    text-align: center;
+    color: #eaf9ff;
+    box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 60px rgba(120,220,255,.2);
+  }
+  .over-card h2 {
+    margin: 0 0 6px;
+    font-size: 30px;
+    letter-spacing: .1em;
+    color: #ffb3c6;
+    text-shadow: 0 0 16px rgba(255,150,190,.5);
+  }
+  .over-card p { opacity: .8; margin: 4px 0 18px; }
+
+  button#new-game, button#new-game-hud {
+    font-family: inherit;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    color: #04222c;
+    background: linear-gradient(180deg, #aef2ff, #58c9e8);
+    border: none;
+    border-radius: 999px;
+    padding: 11px 24px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(90,200,230,.4), inset 0 1px 0 rgba(255,255,255,.6);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button#new-game:hover, button#new-game-hud:hover { transform: translateY(-1px); box-shadow: 0 9px 20px rgba(90,200,230,.55), inset 0 1px 0 rgba(255,255,255,.6); }
+  button#new-game:active, button#new-game-hud:active { transform: translateY(0); }
+
+  #hud-actions { width: min(94vw, 620px); display: flex; justify-content: center; margin-top: -2px; }
+
+  footer.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    justify-content: center;
+    width: min(94vw, 620px);
+    padding: 4px 0 4px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #bfe6f2;
+    opacity: .8;
+  }
+  .legend-swatch { width: 16px; height: 16px; }
+  .legend-swatch svg { width: 100%; height: 100%; }
+
+  .sparkle {
+    animation: twinkle 2.6s ease-in-out infinite;
+    transform-origin: center;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: .12; }
+    50%      { opacity: .95; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stormscape">
+  <div class="cloudband"></div>
+  <div class="cloudband b2"></div>
+  <div class="rain"></div>
+  <div class="wave-layer wave-far">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none"><path d="M0,100 C150,150 350,50 600,100 C850,150 1050,50 1200,100 L1200,200 L0,200 Z" fill="#0d3540"/></svg>
+  </div>
+  <div class="wave-layer wave-mid">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none"><path d="M0,110 C200,60 400,150 600,110 C800,70 1000,140 1200,110 L1200,200 L0,200 Z" fill="#0f4655"/></svg>
+  </div>
+  <div class="wave-layer wave-near">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none"><path d="M0,120 C180,170 420,80 600,120 C780,160 1020,90 1200,120 L1200,200 L0,200 Z" fill="#125566"/></svg>
+  </div>
+</div>
+<div id="lightning-flash"></div>
+<div class="bolt-crack" id="bolt1"><svg viewBox="0 0 40 400"><polyline points="20,0 8,120 24,130 4,260 22,270 10,400" fill="none" stroke="#eaf9ff" stroke-width="3" stroke-linejoin="round"/></svg></div>
+<div class="bolt-crack" id="bolt2"><svg viewBox="0 0 40 400"><polyline points="20,0 30,110 14,120 32,250 16,260 26,400" fill="none" stroke="#eaf9ff" stroke-width="3" stroke-linejoin="round"/></svg></div>
+
+<div id="stage-banner">
+  <div class="stage-kicker">Stage <span id="stage-num">0</span></div>
+  <div class="stage-name" id="stage-name">Calm Waters</div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Midnight Tempest</h1>
+    <div class="tagline">a match-3 storm at sea</div>
+  </header>
+
+  <div id="hud">
+    <div class="hud-card" id="scoreCard">
+      <div class="label">Score</div>
+      <div class="value" id="scoreVal">0</div>
+    </div>
+    <div class="hud-card" id="bestCard">
+      <div class="label">Best</div>
+      <div class="value" id="bestVal">0</div>
+    </div>
+    <div class="hud-card" id="multCard">
+      <div class="label">Multiplier</div>
+      <div class="value" id="multVal">×1</div>
+    </div>
+    <div id="featured" class="none">
+      <div class="glow-pulse"></div>
+      <div class="feat-icon" id="featIcon"></div>
+      <div class="feat-text">
+        <div class="label">Featured</div>
+        <div class="name" id="featName">&mdash;</div>
+        <div class="bonus" id="featBonus"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="board-wrap">
+    <div id="board"></div>
+    <div id="popup-layer"></div>
+  </div>
+
+  <div id="hud-actions">
+    <button id="new-game-hud" data-testid="new-game">New Game</button>
+  </div>
+
+  <footer class="legend" id="legend"></footer>
+</div>
+
+<div id="game-over">
+  <div class="over-card">
+    <h2>The Storm Takes The Board</h2>
+    <p>No moves remain. Final score: <span id="finalScore">0</span></p>
+    <div id="over-actions"></div>
+  </div>
+</div>
+
+<script type="module" src="./render.js"></script>
+</body>
+</html>

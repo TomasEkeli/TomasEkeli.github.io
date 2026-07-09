@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Duskfire — a match-3</title>
+<style>
+  :root {
+    --board-bg: #2a1230;
+    --panel-shadow: rgba(10, 2, 14, 0.65);
+    --accent: #ffb454;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #ffe9d6;
+    overflow-x: hidden;
+    /* Distinctive sunset backdrop: deep amber horizon fading up into magenta/plum,
+       with a soft radial "sun" glow low in the frame and a subtle vignette. */
+    background:
+      radial-gradient(60% 45% at 50% 78%, rgba(255, 170, 80, 0.55), rgba(255, 170, 80, 0) 70%),
+      radial-gradient(120% 90% at 50% 120%, #ff9d4d 0%, #d1477a 38%, #7c2a86 62%, #2c1250 88%, #150826 100%);
+    background-attachment: fixed;
+    position: relative;
+  }
+
+  body::before {
+    /* faint drifting glow layer for atmosphere */
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.5), transparent),
+                radial-gradient(2px 2px at 80% 15%, rgba(255,255,255,.35), transparent),
+                radial-gradient(1.5px 1.5px at 60% 8%, rgba(255,255,255,.4), transparent),
+                radial-gradient(1.5px 1.5px at 30% 5%, rgba(255,255,255,.3), transparent),
+                radial-gradient(1.5px 1.5px at 92% 40%, rgba(255,255,255,.25), transparent);
+    pointer-events: none;
+    opacity: .8;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    margin: 0 0 4px;
+    font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+    letter-spacing: .06em;
+    font-weight: 700;
+    background: linear-gradient(90deg, #ffd79a, #ff9d6a 40%, #ff6fa5 70%, #d88bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 18px rgba(255, 150, 90, .25);
+  }
+
+  .tagline {
+    margin: 0;
+    font-size: .85rem;
+    color: #f4c9a8;
+    opacity: .8;
+    letter-spacing: .04em;
+  }
+
+  .hud {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: .5em;
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hud .label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #f4c9a8;
+    opacity: .75;
+  }
+
+  #score-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--accent);
+    text-shadow: 0 0 14px rgba(255, 180, 84, .55);
+  }
+
+  .board-frame {
+    position: relative;
+    z-index: 1;
+    padding: 14px;
+    border-radius: 22px;
+    background: linear-gradient(160deg, rgba(60, 20, 50, .85), rgba(25, 8, 35, .9));
+    box-shadow:
+      0 30px 60px -12px var(--panel-shadow),
+      0 0 0 1px rgba(255, 190, 130, .18) inset,
+      0 0 40px rgba(255, 140, 90, .12);
+    backdrop-filter: blur(2px);
+  }
+
+  #board {
+    --cols: 8;
+    --rows: 8;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-template-rows: repeat(var(--rows), 1fr);
+    width: min(88vw, 520px);
+    height: min(88vw, 520px);
+    background: radial-gradient(120% 120% at 30% 20%, #3a1740, #1c0a26 70%);
+    border-radius: 14px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.5), inset 0 0 60px rgba(0,0,0,.35);
+    touch-action: none;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cell::after {
+    /* subtle grid separators */
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .03);
+    pointer-events: none;
+  }
+
+  .gem {
+    position: relative;
+    width: 78%;
+    height: 78%;
+    cursor: grab;
+    animation: idleBob 3.6s ease-in-out infinite, idleGlow 5.2s ease-in-out infinite;
+    animation-delay: calc(var(--delay, 0) * 1ms), calc(var(--delay, 0) * 1ms);
+    will-change: transform;
+  }
+
+  .gem::before {
+    /* body: faceted colour fill via layered gradients for a jewel-cut look */
+    content: '';
+    position: absolute;
+    inset: 0;
+    clip-path: inherit;
+    background:
+      radial-gradient(circle at 32% 26%, hsl(calc(var(--hue) + 6) 95% 78%), transparent 42%),
+      linear-gradient(155deg, hsl(calc(var(--hue) + 12) 95% 62%) 0%, hsl(var(--hue) 90% 46%) 48%, hsl(calc(var(--hue) - 10) 85% 30%) 100%);
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,.45)) drop-shadow(0 0 8px hsla(var(--hue), 90%, 60%, .35));
+  }
+
+  .gem::after {
+    /* specular highlight streak, animated for glint */
+    content: '';
+    position: absolute;
+    inset: 0;
+    clip-path: inherit;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.75) 46%, rgba(255,255,255,0) 58%);
+    background-size: 220% 220%;
+    background-position: 120% -20%;
+    mix-blend-mode: screen;
+    animation: glint 4.8s ease-in-out infinite;
+    animation-delay: calc(var(--delay, 0) * 1ms);
+  }
+
+  /* Per-type silhouettes (colour-blind safe: shape carries identity) */
+  .shape-round   { clip-path: circle(46% at 50% 50%); }
+  .shape-square  { clip-path: polygon(14% 14%, 86% 14%, 86% 86%, 14% 86%); }
+  .shape-diamond { clip-path: polygon(50% 4%, 96% 50%, 50% 96%, 4% 50%); }
+  .shape-triangle{ clip-path: polygon(50% 6%, 94% 90%, 6% 90%); }
+  .shape-star    { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .shape-hex     { clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0% 50%); }
+
+  .gem.clearing {
+    animation: none;
+    z-index: 6;
+  }
+  .gem.clearing::before {
+    animation: clearFlash .22s ease-out forwards;
+  }
+  .gem.clearing::after {
+    animation: clearGlint .22s ease-out forwards;
+  }
+
+  @keyframes clearFlash {
+    0%   { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) brightness(1); opacity: 1; transform: scale(1); }
+    55%  { filter: drop-shadow(0 0 16px rgba(255,255,255,.9)) brightness(1.6); opacity: 1; transform: scale(1.18); }
+    100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) brightness(2); opacity: 0; transform: scale(1.4); }
+  }
+  @keyframes clearGlint {
+    0% { opacity: .6; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes idleBob {
+    0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+    50% { transform: translateY(-3%) rotate(2.5deg) scale(1.03); }
+  }
+
+  @keyframes idleGlow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.08); }
+  }
+
+  @keyframes glint {
+    0%   { background-position: 130% -30%; }
+    38%  { background-position: -20% 120%; }
+    100% { background-position: -20% 120%; }
+  }
+
+  /* stagger idle animation delay per cell so gems don't pulse in unison */
+  .cell:nth-child(6n+1)  .gem { --delay: 0; }
+  .cell:nth-child(6n+2)  .gem { --delay: 380; }
+  .cell:nth-child(6n+3)  .gem { --delay: 760; }
+  .cell:nth-child(6n+4)  .gem { --delay: 1140; }
+  .cell:nth-child(6n+5)  .gem { --delay: 1520; }
+  .cell:nth-child(6n+6)  .gem { --delay: 1900; }
+
+  #gain-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    z-index: 20;
+  }
+
+  .gain-pop {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 900;
+    color: #fff3d6;
+    text-shadow:
+      0 0 10px rgba(255, 180, 90, .9),
+      0 0 26px rgba(255, 120, 150, .7),
+      0 4px 10px rgba(0,0,0,.4);
+    animation: gainFloat 1.6s cubic-bezier(.2,.8,.3,1) forwards;
+    white-space: nowrap;
+  }
+
+  @keyframes gainFloat {
+    0%   { transform: translate(-50%, -50%) scale(.5); opacity: 0; }
+    12%  { transform: translate(-50%, -60%) scale(1.15); opacity: 1; }
+    28%  { transform: translate(-50%, -65%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -140%) scale(1); opacity: 0; }
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 14px;
+    font-size: .75rem;
+    color: #f4c9a8;
+    opacity: .55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gem, .gem::after { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Duskfire</h1>
+    <p class="tagline">slide gems along the dusk to ignite a match</p>
+  </header>
+
+  <div class="hud">
+    <span class="label">Score</span>
+    <span id="score-value">0</span>
+  </div>
+
+  <div class="board-frame">
+    <div id="board" aria-label="match-3 board"></div>
+    <div id="gain-layer"></div>
+  </div>
+
+  <footer>drag a gem onto a neighbour to swap</footer>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

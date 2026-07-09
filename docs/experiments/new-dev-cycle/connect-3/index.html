@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<title>Candidate gallery</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; font-family: system-ui, sans-serif; background: #0e1116; color: #e6edf3; }
+  #nav { width: 260px; flex: none; overflow-y: auto; border-right: 1px solid #232a33;
+         padding: 1rem; background: #11161d; }
+  #nav h1 { font-size: 1rem; margin: 0 0 1rem; letter-spacing: .02em; }
+  #nav h2 { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+            color: #8b98a5; margin: 1.2rem 0 .4rem; }
+  #nav ul { list-style: none; margin: 0; padding: 0; }
+  .item { padding: .4rem .55rem; border-radius: 7px; cursor: pointer; font-size: .9rem;
+          display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+  .item:hover { background: #1c2530; }
+  .item.active { background: #2a3f5f; color: #fff; }
+  .item.disabled { color: #5b6570; cursor: default; }
+  .item.disabled:hover { background: none; }
+  .star { color: #ffd166; }
+  .src, .pending { font-size: .72rem; color: #8b98a5; }
+  .promoted h2 { color: #ffd166; }
+  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #bar { padding: .5rem .9rem; border-bottom: 1px solid #232a33; display: flex;
+         align-items: center; gap: 1rem; background: #11161d; }
+  #bar #title { font-weight: 600; }
+  #bar a { color: #58a6ff; text-decoration: none; font-size: .85rem; }
+  #bar button { background: #2a3f5f; color: #fff; border: 0; border-radius: 6px;
+                padding: .3rem .7rem; cursor: pointer; font-size: .85rem; }
+  iframe { flex: 1; width: 100%; border: 0; background: #000; }
+</style></head>
+<body>
+  <div id="nav">
+    <h1>🎮 Candidate gallery</h1>
+    <section><h2>Generation 09</h2><ul><li class="item" data-url="generated/g09-c01/">g09-c01</li><li class="item" data-url="generated/g09-c02/">g09-c02</li></ul></section><section><h2>Generation 08</h2><ul><li class="item" data-url="generated/g08-c01/">g08-c01</li><li class="item" data-url="generated/g08-c02/">g08-c02</li><li class="item" data-url="generated/g08-c03/">g08-c03</li><li class="item" data-url="generated/g08-c04/">g08-c04 <span class="star" title="promoted winner">★</span></li></ul></section><section><h2>Generation 07</h2><ul><li class="item" data-url="generated/g07-c01/">g07-c01</li><li class="item" data-url="generated/g07-c02/">g07-c02</li><li class="item" data-url="generated/g07-c03/">g07-c03</li><li class="item" data-url="generated/g07-c04/">g07-c04</li><li class="item" data-url="generated/g07-c05/">g07-c05</li><li class="item" data-url="generated/g07-c06/">g07-c06</li><li class="item" data-url="generated/g07-c07/">g07-c07</li><li class="item" data-url="generated/g07-c08/">g07-c08</li><li class="item" data-url="generated/g07-c09/">g07-c09</li><li class="item" data-url="generated/g07-c10/">g07-c10</li><li class="item" data-url="generated/g07-c11/">g07-c11 <span class="star" title="promoted winner">★</span></li></ul></section><section><h2>Generation 06</h2><ul><li class="item" data-url="generated/g06-c01/">g06-c01</li><li class="item" data-url="generated/g06-c02/">g06-c02 <span class="star" title="promoted winner">★</span></li><li class="item" data-url="generated/g06-c03/">g06-c03</li><li class="item" data-url="generated/g06-c04/">g06-c04</li></ul></section><section><h2>Generation 05</h2><ul><li class="item" data-url="generated/g05-c01/">g05-c01 <span class="star" title="promoted winner">★</span></li><li class="item" data-url="generated/g05-c02/">g05-c02</li><li class="item" data-url="generated/g05-c03/">g05-c03</li><li class="item" data-url="generated/g05-c04/">g05-c04</li></ul></section><section><h2>Generation 04</h2><ul><li class="item" data-url="generated/g04-c01/">g04-c01</li><li class="item" data-url="generated/g04-c02/">g04-c02</li><li class="item" data-url="generated/g04-c03/">g04-c03</li><li class="item" data-url="generated/g04-c04/">g04-c04 <span class="star" title="promoted winner">★</span></li></ul></section><section><h2>Generation 03</h2><ul><li class="item" data-url="generated/g03-c01/">g03-c01 <span class="star" title="promoted winner">★</span></li><li class="item" data-url="generated/g03-c02/">g03-c02</li><li class="item" data-url="generated/g03-c03/">g03-c03</li><li class="item" data-url="generated/g03-c04/">g03-c04</li></ul></section><section><h2>Generation 02</h2><ul><li class="item" data-url="generated/g02-c01/">g02-c01 <span class="star" title="promoted winner">★</span></li><li class="item" data-url="generated/g02-c02/">g02-c02</li></ul></section><section class="promoted"><h2>Promoted winners</h2><ul><li class="item" data-url="promoted/g08/">g08 winner <span class="src">g08-c04</span></li><li class="item" data-url="promoted/g07/">g07 winner <span class="src">g07-c11</span></li><li class="item" data-url="promoted/g06/">g06 winner <span class="src">g06-c02</span></li><li class="item" data-url="promoted/g05/">g05 winner <span class="src">g05-c01</span></li><li class="item" data-url="promoted/g04/">g04 winner <span class="src">g04-c04</span></li><li class="item" data-url="promoted/g03/">g03 winner <span class="src">g03-c01</span></li><li class="item" data-url="promoted/g02/">g02 winner <span class="src">g02-c01</span></li></ul></section>
+  </div>
+  <div id="main">
+    <div id="bar">
+      <span id="title">—</span>
+      <button id="reload">↻ Reload</button>
+      <a id="newtab" href="#" target="_blank" rel="noopener">Open in new tab ↗</a>
+    </div>
+    <iframe id="frame" title="candidate preview"></iframe>
+  </div>
+<script>
+  const frame = document.getElementById('frame');
+  const title = document.getElementById('title');
+  const newtab = document.getElementById('newtab');
+  let current = '';
+  function load(url, label) {
+    current = url;
+    frame.src = url;
+    title.textContent = label;
+    newtab.href = url;
+    document.querySelectorAll('.item').forEach((el) =>
+      el.classList.toggle('active', el.dataset.url === url));
+  }
+  document.querySelectorAll('.item[data-url]').forEach((el) => {
+    el.addEventListener('click', () => load(el.dataset.url, el.textContent.trim()));
+  });
+  document.getElementById('reload').addEventListener('click', () => {
+    if (current) frame.src = current;
+  });
+  const def = "promoted/g08/";
+  if (def) {
+    const el = [...document.querySelectorAll('.item[data-url]')].find((e) => e.dataset.url === def);
+    load(def, el ? el.textContent.trim() : def);
+  }
+</script>
+</body></html>

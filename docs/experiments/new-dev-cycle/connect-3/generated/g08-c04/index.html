@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abyssal Lumen — a bioluminescent match-3 dive</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #041c33;
+    font-family: Georgia, 'Times New Roman', serif; color: #d7ecf7;
+    -webkit-user-select: none; user-select: none; }
+  #scene, #scene canvas { position: fixed; inset: 0; display: block; }
+
+  /* invisible pointer-receiving hit-grid over the WebGL board */
+  #hits { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+  .hitcell { position: absolute; pointer-events: auto; touch-action: none;
+    cursor: grab; border-radius: 12%; }
+  .hitcell:active { cursor: grabbing; }
+
+  #floats { position: fixed; inset: 0; z-index: 8; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: .4em; }
+  .float { animation: rise 1.9s ease-out forwards; font-weight: bold;
+    text-shadow: 0 0 18px rgba(83,216,251,.9), 0 2px 6px rgba(0,0,0,.6); }
+  .float.gain { font-size: clamp(2.2rem, 6vw, 4rem); color: #aef3ff; }
+  .float.bonus { font-size: clamp(1.2rem, 3vw, 1.8rem); color: #ffd166;
+    text-shadow: 0 0 16px rgba(255,183,3,.95), 0 2px 6px rgba(0,0,0,.6); }
+  .float.feat { font-size: clamp(1rem, 2.4vw, 1.4rem); color: #ff9fbe;
+    text-shadow: 0 0 14px rgba(255,93,143,.9); }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(24px) scale(.7); }
+    12% { opacity: 1; transform: translateY(0) scale(1.06); }
+    75% { opacity: 1; } 100% { opacity: 0; transform: translateY(-70px); } }
+
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: baseline; gap: 1.4rem; flex-wrap: wrap;
+    padding: .7rem 1.2rem;
+    background: linear-gradient(rgba(2,10,20,.75), rgba(2,10,20,0)); }
+  h1 { font-size: 1.05rem; letter-spacing: .22em; text-transform: uppercase;
+    color: #7fd8ef; font-weight: normal; }
+  .stat { font-size: .95rem; }
+  .stat b { color: #fff; font-size: 1.15rem; margin-left: .3em; }
+  #mult { color: #ffd166; }
+  footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .6rem 1.2rem; gap: 1rem;
+    background: linear-gradient(rgba(2,10,20,0), rgba(2,10,20,.75)); }
+  #stage { letter-spacing: .12em; font-style: italic; color: #9fd0e8; }
+  #featured { font-size: .85rem; }
+  button[data-testid="new-game"] { z-index: 11; cursor: pointer;
+    font: inherit; letter-spacing: .14em; text-transform: uppercase;
+    color: #d7ecf7; background: rgba(46,196,182,.16);
+    border: 1px solid rgba(127,216,239,.55); border-radius: 999px;
+    padding: .5rem 1.3rem; backdrop-filter: blur(3px); }
+  button[data-testid="new-game"]:hover { background: rgba(46,196,182,.35); }
+
+  #gameover { position: fixed; inset: 0; z-index: 9; display: none;
+    align-items: center; justify-content: center; flex-direction: column;
+    gap: .6rem; background: radial-gradient(ellipse at center,
+      rgba(2,8,16,.55), rgba(2,8,16,.88)); text-align: center; }
+  #gameover.show { display: flex; }
+  #gameover h2 { font-size: clamp(1.8rem, 5vw, 3rem); color: #aef3ff;
+    letter-spacing: .18em; text-transform: uppercase;
+    text-shadow: 0 0 22px rgba(83,216,251,.8); }
+  #gameover p { color: #9fd0e8; font-style: italic; }
+</style>
+</head>
+<body>
+  <div id="scene"></div>
+  <div id="hits"></div>
+  <div id="floats"></div>
+
+  <header>
+    <h1>Abyssal Lumen</h1>
+    <span class="stat">Score<b id="score">0</b></span>
+    <span class="stat">Best<b id="best">0</b></span>
+    <span class="stat">Streak<b id="mult">×1</b></span>
+  </header>
+
+  <div id="gameover">
+    <h2>The lights go out</h2>
+    <p>No moves remain in the dark. Dive again?</p>
+  </div>
+
+  <footer>
+    <span>
+      <span id="stage">Depth 1 · Sunlit Shallows</span><br>
+      <span id="featured"></span>
+    </span>
+    <button type="button" data-testid="new-game">New Dive</button>
+  </footer>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Abyssal Lightwell</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #061c38;
+    font-family: 'Segoe UI', system-ui, sans-serif; color: #d8ecf7;
+    -webkit-user-select: none; user-select: none; touch-action: none; }
+  #scene { position: fixed; inset: 0; display: block; }
+
+  /* invisible pointer-receiving hit grid over the WebGL board */
+  #hits { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+  #hits .hit { position: absolute; pointer-events: auto; cursor: grab;
+    background: transparent; border-radius: 8px; }
+  #hits .hit:active { cursor: grabbing; }
+
+  #hud { position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; gap: 26px; align-items: baseline;
+    background: rgba(3, 14, 26, 0.55); backdrop-filter: blur(6px);
+    border: 1px solid rgba(140, 220, 255, 0.18); border-radius: 14px;
+    padding: 10px 22px; text-align: center; white-space: nowrap; }
+  #hud .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: #7fb6d4; display: block; }
+  #hud .val { font-size: 22px; font-weight: 700; color: #eafaff;
+    text-shadow: 0 0 14px rgba(110, 220, 255, 0.5); }
+  #mult { color: #ffd77a !important; }
+
+  #stagebar { position: fixed; top: 76px; left: 50%; transform: translateX(-50%);
+    z-index: 10; text-align: center; }
+  #stage-name { font-size: 14px; letter-spacing: 3px; text-transform: uppercase;
+    color: #9fdcff; text-shadow: 0 0 12px rgba(90, 200, 255, 0.6); }
+  #featured { font-size: 11px; color: #8fb8cc; margin-top: 2px; }
+
+  #legend { position: fixed; left: 14px; bottom: 14px; z-index: 10;
+    display: flex; gap: 8px; font-size: 11px; color: #a9cfe2;
+    background: rgba(3, 14, 26, 0.5); border-radius: 10px; padding: 6px 10px; }
+  #legend .lg { display: inline-flex; align-items: center; gap: 4px; }
+  #legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  button[data-testid="new-game"] { position: fixed; right: 16px; top: 16px;
+    z-index: 40; padding: 10px 20px; font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; color: #06253a; background: linear-gradient(180deg, #8fe6ff, #3fb2e0);
+    border: none; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 0 18px rgba(90, 210, 255, 0.45); }
+  button[data-testid="new-game"]:hover { filter: brightness(1.12); }
+
+  #pops { position: fixed; inset: 0; z-index: 15; pointer-events: none;
+    display: flex; align-items: center; justify-content: center; }
+  .pop { position: absolute; font-size: 52px; font-weight: 800; color: #aef0ff;
+    text-shadow: 0 0 22px rgba(120, 230, 255, 0.9), 0 2px 4px rgba(0,0,0,0.6);
+    animation: popfloat 1.8s ease-out forwards; text-align: center; }
+  .pop-bonus { display: block; font-size: 22px; color: #ffd257; margin-top: 4px;
+    text-shadow: 0 0 16px rgba(255, 200, 60, 0.9); }
+  @keyframes popfloat {
+    0%   { opacity: 0; transform: translateY(20px) scale(0.6); }
+    12%  { opacity: 1; transform: translateY(0) scale(1.12); }
+    24%  { transform: translateY(-4px) scale(1); }
+    75%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-70px) scale(0.95); }
+  }
+
+  #gameover { position: fixed; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 18px;
+    background: rgba(2, 8, 16, 0.72); backdrop-filter: blur(4px); text-align: center; }
+  #gameover.show { display: flex; }
+  #gameover h1 { font-size: 44px; letter-spacing: 6px; color: #cfefff;
+    text-shadow: 0 0 30px rgba(90, 200, 255, 0.8); }
+  #gameover p { color: #8fb8cc; }
+  #gameover button[data-testid="new-game"] { position: static; font-size: 18px;
+    padding: 14px 34px; }
+</style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="hits"></div>
+
+  <div id="hud">
+    <div><span class="lbl">Score</span><span class="val" id="score">0</span></div>
+    <div><span class="lbl">Multiplier</span><span class="val" id="mult">x1</span></div>
+    <div><span class="lbl">Best</span><span class="val" id="best">0</span></div>
+  </div>
+  <div id="stagebar">
+    <div id="stage-name">Zone 1 — Sunlit Shallows</div>
+    <div id="featured"></div>
+  </div>
+  <div id="legend"></div>
+  <button type="button" data-testid="new-game">New Dive</button>
+  <div id="pops"></div>
+
+  <div id="gameover">
+    <h1>THE DEEP GOES STILL</h1>
+    <p>No moves remain. The lightwell fades…<br>Press <b>New Dive</b> (top right) to descend again.</p>
+  </div>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

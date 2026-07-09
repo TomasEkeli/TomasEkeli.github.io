@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Celestial Vault — a 3D match-3</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: #0a0714; color: #f2e9ff;
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    user-select: none; -webkit-user-select: none;
+    touch-action: none;
+  }
+  #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 10px 16px;
+    background: linear-gradient(180deg, rgba(20,10,40,0.9), rgba(20,10,40,0.2));
+    z-index: 20;
+  }
+  .title { font-size: 18px; font-weight: bold; letter-spacing: 1px;
+    background: linear-gradient(90deg,#ff9de2,#6ad3ff); -webkit-background-clip: text;
+    background-clip: text; color: transparent; white-space: nowrap; }
+  .title small { display:block; font-size:11px; letter-spacing:2px; color:#b9a9d8; -webkit-text-fill-color:#b9a9d8; }
+  .stats { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .stat { text-align: center; line-height: 1.1; }
+  .stat .k { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #a99cc9; }
+  .stat .v { font-size: 18px; font-weight: bold; }
+  .stat .v.mult { color: #ffd24a; }
+  #new-game {
+    cursor: pointer; border: 1px solid #6ad3ff77; color: #eafcff;
+    background: linear-gradient(180deg,#2a4a7a,#173257);
+    padding: 9px 16px; border-radius: 10px; font-weight: bold; font-size: 14px;
+    box-shadow: 0 2px 10px #6ad3ff33;
+  }
+  #new-game:active { transform: translateY(1px); }
+
+  #stagewrap { text-align:center; font-size:12px; letter-spacing:2px; color:#c7b6ea;
+    padding: 2px 0 6px; z-index: 20; }
+  #stage-name { color:#ffd6ff; font-weight:bold; }
+  #featured { color:#ffd24a; font-weight:bold; }
+
+  #stagearea { position: relative; flex: 1; min-height: 0; }
+  #scene { position: absolute; inset: 0; }
+  #scene canvas { display: block; width: 100% !important; height: 100% !important; }
+
+  #hitlayer { position: absolute; inset: 0; z-index: 10; }
+  .hitcell {
+    position: absolute;
+    /* invisible but pointer-receiving */
+    background: transparent;
+    cursor: grab;
+  }
+  .hitcell:active { cursor: grabbing; }
+
+  #gainpop {
+    position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
+    font-size: 44px; font-weight: 900; color: #fff;
+    text-shadow: 0 0 18px #6ad3ff, 0 2px 6px #000; pointer-events: none;
+    opacity: 0; z-index: 15; white-space: nowrap; text-align:center;
+  }
+  #gainpop .bonus { display:block; font-size:20px; color:#ffd24a;
+    text-shadow: 0 0 14px #ffae00, 0 2px 4px #000; margin-top:2px; }
+  #gainpop.show { animation: pop 1.6s ease-out forwards; }
+  @keyframes pop {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.6) translateY(20px); }
+    18% { opacity: 1; transform: translateX(-50%) scale(1.15) translateY(0); }
+    35% { transform: translateX(-50%) scale(1) translateY(0); }
+    80% { opacity: 1; transform: translateX(-50%) scale(1) translateY(-24px); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.95) translateY(-48px); }
+  }
+
+  #gameover {
+    position: absolute; inset: 0; z-index: 30; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(8,4,20,0.72); backdrop-filter: blur(3px); gap: 18px;
+  }
+  #gameover h1 { font-size: 46px; margin: 0;
+    background: linear-gradient(90deg,#ff9de2,#6ad3ff); -webkit-background-clip:text;
+    background-clip:text; color:transparent; }
+  #gameover p { color:#c7b6ea; margin:0; }
+  #gameover .go-btn { font-size: 16px; padding: 12px 24px; }
+
+  footer { text-align:center; font-size:11px; color:#7a6c9c; padding:4px; z-index:20; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">CELESTIAL VAULT<small>3D MATCH · THREE.JS</small></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
+      <div class="stat"><div class="k">Best</div><div class="v" id="best">0</div></div>
+      <div class="stat"><div class="k">Multiplier</div><div class="v mult" id="mult">×1</div></div>
+      <div class="stat"><div class="k">Last move</div><div class="v" id="lastgain">0</div></div>
+    </div>
+    <button id="new-game" data-testid="new-game">New Game</button>
+  </header>
+
+  <div id="stagewrap">
+    STAGE <span id="stage-name">Nebula</span> · featured gem <span id="featured">none</span>
+  </div>
+
+  <div id="stagearea">
+    <div id="scene"></div>
+    <div id="hitlayer"></div>
+    <div id="gainpop"></div>
+    <div id="gameover">
+      <h1>Out of Moves</h1>
+      <p>The vault has no more matches. Begin anew.</p>
+      <button class="go-btn" onclick="document.getElementById('new-game').click()"
+        style="cursor:pointer;border:1px solid #6ad3ff77;color:#eafcff;background:linear-gradient(180deg,#2a4a7a,#173257);border-radius:10px;font-weight:bold;">
+        New Game
+      </button>
+    </div>
+  </div>
+
+  <footer>Slide a gem toward a neighbour to swap · match 3+ · big matches compound the multiplier</footer>
+</div>
+
+<script type="module" src="./render.js"></script>
+</body>
+</html>

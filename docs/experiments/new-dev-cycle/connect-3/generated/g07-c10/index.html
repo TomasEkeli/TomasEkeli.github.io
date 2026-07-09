@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Orrery — a celestial match</title>
+<style>
+  :root {
+    /* Stage-driven palette (overwritten by JS per planet). Defaults: the void. */
+    --sky-top: #0a0f2a;
+    --sky-mid: #131a45;
+    --sky-bottom: #05070f;
+    --nebula-a: rgba(120, 90, 220, 0.35);
+    --nebula-b: rgba(60, 150, 220, 0.30);
+    --accent: #ffd54a;
+    --accent-2: #8fb7ff;
+    --brass: #caa350;
+    --brass-dark: #7a5e26;
+    --ink: #eaf0ff;
+    --ink-soft: #9fb0d8;
+
+    --cell: 62px;
+    --gap: 6px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+    background:
+      radial-gradient(140% 120% at 18% 0%, var(--nebula-a) 0%, transparent 48%),
+      radial-gradient(120% 120% at 88% 22%, var(--nebula-b) 0%, transparent 50%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 46%, var(--sky-bottom) 100%);
+    transition: background 1400ms ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Parallax starfield lives on a fixed canvas behind everything. */
+  #stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Faint concentric orrery rings drifting behind the board. */
+  .cosmos {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .ring-halo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    border: 1px solid rgba(202, 163, 80, 0.10);
+    transform: translate(-50%, -50%);
+    animation: spin 120s linear infinite;
+  }
+  .ring-halo.b { border-color: rgba(143, 183, 255, 0.08); animation-duration: 200s; animation-direction: reverse; }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .scene {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  header.hud {
+    width: min(94vw, 560px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .title {
+    margin: 0;
+    font-size: clamp(22px, 5vw, 32px);
+    letter-spacing: 0.22em;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 22px rgba(143, 183, 255, 0.15);
+  }
+  .planet-tag {
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .planet-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 30%, #fff6, var(--accent) 60%, #0004);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 10px;
+  }
+  .stat {
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    border: 1px solid rgba(202, 163, 80, 0.30);
+    border-radius: 12px;
+    padding: 8px 12px;
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 16px rgba(0,0,0,0.35);
+  }
+  .stat .k {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .stat .v {
+    font-size: clamp(18px, 4.4vw, 26px);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+  }
+  .stat .v small { font-size: 0.55em; color: var(--ink-soft); font-weight: 600; }
+  #mult.hot .v { color: var(--accent); text-shadow: 0 0 14px var(--accent); }
+
+  .feature-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(202,163,80,0.25);
+    background: linear-gradient(90deg, rgba(255,213,74,0.10), rgba(255,213,74,0.02));
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    transition: opacity 300ms ease;
+  }
+  .feature-bar.empty { opacity: 0.35; }
+  .feature-bar .chip-gem { width: 26px; height: 26px; flex: 0 0 26px; filter: drop-shadow(0 0 6px var(--accent)); }
+  .feature-bar b { color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; }
+  .feature-bar .pulse-word {
+    margin-left: auto;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    animation: chipPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes chipPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; text-shadow: 0 0 12px var(--accent); } }
+
+  /* The board sits inside a brass orrery frame, lifted off the sky. */
+  .orrery {
+    position: relative;
+    padding: 16px;
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(20,26,60,0.85), rgba(6,9,22,0.92));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow:
+      0 26px 60px rgba(0,0,0,0.6),
+      0 0 0 2px rgba(202,163,80,0.35),
+      0 0 42px rgba(143,183,255,0.12);
+  }
+  .orrery::before {
+    /* brass rim */
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 26px;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--brass) 0%, #fff2c8 20%, var(--brass-dark) 50%, var(--brass) 80%, #fff2c8 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  #board {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(8, var(--cell));
+    grid-template-rows: repeat(8, var(--cell));
+    gap: var(--gap);
+    border-radius: 12px;
+    padding: 6px;
+    background:
+      radial-gradient(120% 120% at 50% 0%, rgba(143,183,255,0.10), transparent 60%),
+      rgba(4, 6, 16, 0.55);
+    box-shadow: inset 0 2px 18px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(202,163,80,0.18);
+  }
+
+  .cell {
+    position: relative;
+    width: var(--cell);
+    height: var(--cell);
+    border-radius: 12px;
+    /* faint constellation socket */
+    background:
+      radial-gradient(60% 60% at 50% 40%, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    cursor: grab;
+    touch-action: none;
+  }
+  .cell:active { cursor: grabbing; }
+
+  .gem {
+    position: absolute;
+    inset: 3px;
+    width: calc(var(--cell) - 6px);
+    height: calc(var(--cell) - 6px);
+    will-change: transform, opacity;
+    transform-origin: center;
+    animation: idleFloat 5.5s ease-in-out infinite;
+    filter: drop-shadow(0 4px 5px rgba(0,0,0,0.55));
+  }
+  .gem svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  /* subtle idle life — each gem drifts on its own phase (set inline) */
+  @keyframes idleFloat {
+    0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+    50%      { transform: translateY(-2px) rotate(1.2deg); }
+  }
+
+  .gem.dragging {
+    animation: none;
+    z-index: 40;
+    filter: drop-shadow(0 10px 12px rgba(0,0,0,0.6));
+    transform: scale(1.08);
+  }
+  .gem.dropping { animation: none; }
+  .gem.swapping { animation: none; z-index: 30; }
+
+  .gem.clearing {
+    animation: clearPop 0.2s ease-in forwards;
+    z-index: 20;
+  }
+  @keyframes clearPop {
+    0%   { transform: scale(1) rotate(0); filter: drop-shadow(0 4px 5px rgba(0,0,0,0.55)) brightness(1); }
+    45%  { transform: scale(1.28) rotate(8deg); filter: drop-shadow(0 0 18px #fff) brightness(2.2); }
+    100% { transform: scale(0.05) rotate(30deg); opacity: 0; filter: drop-shadow(0 0 24px #fff) brightness(3); }
+  }
+
+  /* featured gem — strong cue: golden halo + steady pulse + orbiting spark */
+  .gem.featured::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,213,74,0.30) 0%, transparent 68%);
+    animation: featHalo 1.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+  @keyframes featHalo {
+    0%,100% { transform: scale(0.9); opacity: 0.55; }
+    50%     { transform: scale(1.18); opacity: 1; }
+  }
+  .gem.featured .spark {
+    position: absolute;
+    width: 8%; height: 8%;
+    top: 46%; left: 46%;
+    background: radial-gradient(circle, #fff, var(--accent) 60%, transparent 70%);
+    border-radius: 50%;
+    transform-origin: 250% 250%;
+    animation: orbit 2.4s linear infinite;
+    filter: drop-shadow(0 0 4px var(--accent));
+  }
+  @keyframes orbit { to { transform: rotate(360deg); } }
+
+  .gem.hinted { animation: hintWiggle 0.9s ease-in-out infinite; z-index: 15; }
+  @keyframes hintWiggle {
+    0%,100% { transform: translate(0,0) rotate(0); }
+    25%     { transform: translate(-2px,-1px) rotate(-5deg); }
+    50%     { transform: translate(0,-3px) rotate(0); filter: drop-shadow(0 0 10px var(--accent-2)) drop-shadow(0 4px 5px rgba(0,0,0,0.55)); }
+    75%     { transform: translate(2px,-1px) rotate(5deg); }
+  }
+
+  /* Floating "+N" gain, popped over the board. */
+  .gain-float {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 60;
+    animation: gainRise 1.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  }
+  .gain-float .n {
+    font-size: clamp(38px, 9vw, 58px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 0 18px var(--accent), 0 3px 8px rgba(0,0,0,0.6);
+    font-variant-numeric: tabular-nums;
+  }
+  .gain-float .x {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: clamp(16px, 3.6vw, 22px);
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 14px var(--accent);
+  }
+  .gain-float .tags { margin-top: 6px; display: flex; gap: 6px; justify-content: center; }
+  .gain-float .tag {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(2px);
+  }
+  .gain-float .tag.feat { color: #ffe08a; box-shadow: 0 0 0 1px rgba(255,213,74,0.5); }
+  .gain-float .tag.dev  { color: #b6ffd8; box-shadow: 0 0 0 1px rgba(120,255,190,0.55); }
+  @keyframes gainRise {
+    0%   { transform: translate(-50%, 10px) scale(0.5); opacity: 0; }
+    18%  { transform: translate(-50%, -6px) scale(1.12); opacity: 1; }
+    30%  { transform: translate(-50%, -14px) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -110px) scale(0.92); opacity: 0; }
+  }
+
+  /* Stage-transition banner — a genuine "you have arrived" event. */
+  #banner {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+    opacity: 0;
+  }
+  #banner.show { animation: bannerShow 2s ease forwards; }
+  #banner .flash {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 45%, var(--accent) 0%, transparent 55%);
+    opacity: 0;
+    animation: flash 2s ease forwards;
+    mix-blend-mode: screen;
+  }
+  #banner .stage-n {
+    font-size: 15px; letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--accent-2); text-indent: 0.5em;
+  }
+  #banner .stage-name {
+    font-size: clamp(40px, 12vw, 86px);
+    font-weight: 800; letter-spacing: 0.06em;
+    background: linear-gradient(90deg, #fff, var(--accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 40px var(--accent);
+  }
+  #banner .stage-sub { font-size: 14px; color: var(--ink-soft); letter-spacing: 0.16em; text-transform: uppercase; }
+  @keyframes bannerShow {
+    0% { opacity: 0; } 12% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; }
+  }
+  @keyframes flash { 0% { opacity: 0; } 10% { opacity: 0.7; } 40% { opacity: 0.12; } 100% { opacity: 0; } }
+
+  /* Game over overlay */
+  #gameover {
+    position: absolute;
+    inset: 0;
+    z-index: 70;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    border-radius: 12px;
+    background: radial-gradient(circle at 50% 40%, rgba(10,14,40,0.55), rgba(2,3,10,0.9));
+    backdrop-filter: blur(3px);
+  }
+  #gameover.show { display: flex; }
+  #gameover .go-title {
+    font-size: clamp(30px, 8vw, 46px); font-weight: 800; letter-spacing: 0.14em;
+    color: #fff; text-shadow: 0 0 26px var(--accent-2);
+  }
+  #gameover .go-sub { color: var(--ink-soft); letter-spacing: 0.1em; }
+
+  .btn {
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #14203f;
+    background: linear-gradient(180deg, #ffe9a6, var(--brass) 55%, var(--brass-dark));
+    border: none;
+    border-radius: 999px;
+    padding: 12px 26px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6);
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+  .btn:active { transform: translateY(0); }
+  .btn.ghost {
+    color: var(--ink);
+    background: rgba(255,255,255,0.06);
+    box-shadow: inset 0 0 0 1px rgba(202,163,80,0.4);
+    padding: 8px 18px;
+    font-size: 12px;
+  }
+
+  footer.controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .hintnote { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="cosmos" aria-hidden="true">
+    <div class="ring-halo" style="width:560px;height:560px"></div>
+    <div class="ring-halo b" style="width:820px;height:820px"></div>
+    <div class="ring-halo" style="width:1120px;height:1120px"></div>
+  </div>
+
+  <div class="scene">
+    <header class="hud">
+      <div class="title-row">
+        <h1 class="title">Orrery</h1>
+        <div class="planet-tag"><span class="planet-dot"></span><span id="planet-name">Mercury</span></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat" id="score-box">
+          <div class="k">Score</div>
+          <div class="v" id="score">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Best</div>
+          <div class="v" id="best">0</div>
+        </div>
+        <div class="stat" id="mult">
+          <div class="k">Multiplier</div>
+          <div class="v" id="mult-v">&times;1</div>
+        </div>
+      </div>
+      <div class="feature-bar empty" id="feature-bar">
+        <span>No colour spotlighted</span>
+      </div>
+    </header>
+
+    <div class="orrery">
+      <div id="board" aria-label="game board"></div>
+      <div id="gameover">
+        <div class="go-title">Out of Moves</div>
+        <div class="go-sub">The constellations have settled.</div>
+        <button class="btn" id="new-game-over">Launch a New Voyage</button>
+      </div>
+    </div>
+
+    <footer class="controls">
+      <button class="btn ghost" data-testid="new-game" id="new-game">New Game</button>
+      <span class="hintnote" id="hintnote"></span>
+    </footer>
+  </div>
+
+  <div id="banner" aria-hidden="true">
+    <div class="flash"></div>
+    <div class="stage-n" id="banner-n">Stage 1</div>
+    <div class="stage-name" id="banner-name">Venus</div>
+    <div class="stage-sub" id="banner-sub"></div>
+  </div>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

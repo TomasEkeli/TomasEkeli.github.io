@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skylark Rise — a match-3 balloon festival</title>
+<style>
+  :root {
+    --ink: #2b3450;
+    --panel: rgba(255, 255, 255, 0.72);
+    --panel-line: rgba(255, 255, 255, 0.9);
+    --accent: #ff9a5c;
+    --gold: #ffb520;
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: system-ui, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(#aee6ff, #ffe9c9); /* behind the canvas while it boots */
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  /* --- invisible pointer hit-cells over the 3D gems --- */
+  #cells { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+  #cells .hitcell {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    touch-action: none;
+    cursor: grab;
+    /* invisible but real */
+    background: transparent;
+    border-radius: 20%;
+  }
+  #cells .hitcell:active { cursor: grabbing; }
+
+  /* --- floating effects layer (score pops, wave pops) --- */
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 8; overflow: hidden; }
+  .gain-pop {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-weight: 900;
+    font-size: 52px;
+    letter-spacing: 1px;
+    color: #fff;
+    -webkit-text-stroke: 2px rgba(43, 52, 80, 0.55);
+    text-shadow: 0 4px 18px rgba(255, 160, 40, 0.65), 0 2px 0 rgba(0,0,0,0.15);
+    animation: gainpop 1.6s ease-out forwards;
+    white-space: nowrap;
+  }
+  .gain-pop .bonus-tag {
+    display: block;
+    font-size: 22px;
+    margin-top: 4px;
+    color: #fff;
+    background: linear-gradient(120deg, #ffb520, #ff7ac8);
+    border-radius: 999px;
+    padding: 3px 14px;
+    width: max-content;
+    margin-left: auto; margin-right: auto;
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+    box-shadow: 0 4px 14px rgba(255, 122, 200, 0.5);
+  }
+  @keyframes gainpop {
+    0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.5); }
+    12%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    24%  { transform: translate(-50%, -52%) scale(1); }
+    75%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -130%) scale(1.05); }
+  }
+  .wave-pop {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-weight: 800;
+    color: #fff;
+    -webkit-text-stroke: 1.5px rgba(43, 52, 80, 0.5);
+    text-shadow: 0 3px 12px rgba(255, 140, 60, 0.6);
+    animation: wavepop 1.1s ease-out forwards;
+    white-space: nowrap;
+  }
+  @keyframes wavepop {
+    0%   { opacity: 0; transform: translate(-50%, -40%) scale(0.4); }
+    18%  { opacity: 1; transform: translate(-50%, -55%) scale(1.1); }
+    70%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -140%) scale(1); }
+  }
+
+  /* --- HUD chrome --- */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: var(--radius);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 28px rgba(60, 90, 140, 0.18);
+  }
+  #hud-top {
+    position: fixed; top: 10px; left: 12px; right: 12px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 10px; z-index: 10; pointer-events: none;
+  }
+  #hud-top > * { pointer-events: auto; }
+  #brand { padding: 8px 16px; }
+  #brand h1 {
+    font-size: 21px; font-weight: 900; letter-spacing: 0.5px;
+    background: linear-gradient(100deg, #ff8a3c, #ff5d9e 45%, #6a7bff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #stage-chip {
+    display: inline-block; font-size: 12px; font-weight: 700;
+    color: #6a4b16;
+    background: linear-gradient(120deg, #ffe9ad, #ffd0e8);
+    border-radius: 999px; padding: 2px 12px; margin-top: 2px;
+  }
+  #stats { display: flex; gap: 4px; padding: 6px 10px; align-items: stretch; }
+  .stat { padding: 3px 12px; text-align: center; min-width: 84px; }
+  .stat label { display: block; font-size: 10px; font-weight: 800; letter-spacing: 1.2px; opacity: 0.6; text-transform: uppercase; }
+  .stat span { font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  #mult-stat span { color: #ff6a2e; transition: transform 0.2s; }
+  #mult-stat .trend { font-size: 12px; vertical-align: super; }
+  .stat-bump { animation: statbump 0.45s ease-out; }
+  @keyframes statbump { 30% { transform: scale(1.3); } 100% { transform: scale(1); } }
+  #actions { display: flex; gap: 8px; padding: 8px 10px; }
+  button {
+    font: inherit; font-weight: 800; font-size: 13px;
+    color: #fff; border: none; border-radius: 999px;
+    padding: 8px 16px; cursor: pointer;
+    background: linear-gradient(120deg, #ff8a3c, #ff5d9e);
+    box-shadow: 0 4px 14px rgba(255, 110, 90, 0.45);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  button:hover { transform: translateY(-1px) scale(1.03); box-shadow: 0 7px 18px rgba(255,110,90,0.55); }
+  button:active { transform: translateY(0) scale(0.98); }
+  #reset-view { background: linear-gradient(120deg, #46b8ff, #6a7bff); box-shadow: 0 4px 14px rgba(90, 130, 255, 0.4); }
+  #mute { background: rgba(255,255,255,0.85); color: var(--ink); box-shadow: 0 3px 10px rgba(60,90,140,0.2); padding: 8px 12px; }
+
+  /* --- value ledger (left) --- */
+  #ledger {
+    position: fixed; left: 12px; top: 50%; transform: translateY(-50%);
+    z-index: 10; padding: 12px 14px; width: 218px;
+  }
+  #ledger h2, #queue h2 {
+    font-size: 11px; font-weight: 900; letter-spacing: 1.6px;
+    text-transform: uppercase; opacity: 0.65; margin-bottom: 8px;
+  }
+  #ledger-rows { list-style: none; }
+  #ledger-rows li {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 6px; border-radius: 9px; margin-bottom: 2px;
+    font-size: 13px; font-weight: 700;
+    transition: background 0.3s;
+  }
+  #ledger-rows li .gname { flex: 1; }
+  #ledger-rows li .gval { font-variant-numeric: tabular-nums; font-weight: 900; }
+  #ledger-rows li .gval small { font-weight: 600; opacity: 0.55; }
+  #ledger-rows li.featured {
+    background: linear-gradient(110deg, rgba(255,214,66,0.55), rgba(255,150,220,0.45));
+    box-shadow: inset 0 0 0 2px rgba(255, 170, 30, 0.75);
+    animation: featglow 1.4s ease-in-out infinite;
+  }
+  @keyframes featglow {
+    0%, 100% { box-shadow: inset 0 0 0 2px rgba(255,170,30,0.75), 0 0 6px rgba(255,180,40,0.3); }
+    50%      { box-shadow: inset 0 0 0 2px rgba(255,170,30,1), 0 0 16px rgba(255,180,40,0.75); }
+  }
+  .hotbadge {
+    font-size: 10px; font-weight: 900; color: #7a3c00;
+    background: linear-gradient(120deg, #ffd642, #ffab2e);
+    border-radius: 999px; padding: 1px 7px;
+  }
+  .favbadge {
+    font-size: 10px; font-weight: 900; color: #fff;
+    background: linear-gradient(120deg, #46b8ff, #6a7bff);
+    border-radius: 999px; padding: 1px 7px;
+  }
+  /* 2D glyphs mirroring the 3D silhouettes (colour-blind-safe shapes) */
+  .glyph { width: 18px; height: 18px; flex: none; display: inline-block; position: relative; }
+  .glyph::before { content: ""; position: absolute; inset: 0; background: var(--g, #999); }
+  .glyph.shape-diamond::before  { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .glyph.shape-cube::before     { inset: 2px; border-radius: 3px; }
+  .glyph.shape-orb::before      { border-radius: 50%; }
+  .glyph.shape-prism::before    { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+  .glyph.shape-pyramid::before  { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .glyph.shape-ring::before     { border-radius: 50%; background: transparent; border: 5px solid var(--g, #999); inset: 0; }
+
+  #featured-callout {
+    margin-top: 10px; padding: 8px 10px; border-radius: 10px;
+    font-size: 12px; font-weight: 800; text-align: center; color: #7a3c00;
+    background: linear-gradient(120deg, #ffe17a, #ffc4e6);
+    box-shadow: 0 0 0 2px rgba(255, 175, 30, 0.55);
+    animation: featglow 1.4s ease-in-out infinite;
+  }
+  #featured-callout .big { font-size: 17px; display: block; }
+  #mult-note { margin-top: 8px; font-size: 11px; font-weight: 600; opacity: 0.75; line-height: 1.45; text-align: center; }
+
+  /* --- next-drops queue (right) --- */
+  #queue {
+    position: fixed; right: 12px; top: 50%; transform: translateY(-50%);
+    z-index: 10; padding: 12px 14px; width: 168px; text-align: center;
+  }
+  #peek { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .peek-chip {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 4px 8px; border-radius: 9px;
+    background: rgba(255,255,255,0.55);
+    font-size: 11px; font-weight: 700;
+  }
+  .peek-chip .ord { opacity: 0.45; font-weight: 900; width: 12px; }
+  .peek-chip:first-of-type { box-shadow: inset 0 0 0 2px rgba(106, 123, 255, 0.45); }
+  #favoured-note {
+    margin-top: 10px; font-size: 11px; font-weight: 700; line-height: 1.5;
+    padding: 6px 8px; border-radius: 9px;
+    background: linear-gradient(120deg, rgba(120, 200, 255, 0.35), rgba(160, 150, 255, 0.3));
+  }
+  #favoured-note .glyph { vertical-align: -4px; }
+
+  /* --- stage banner + game over --- */
+  #banner {
+    position: fixed; left: 50%; top: 34%; transform: translate(-50%, -50%);
+    z-index: 20; pointer-events: none; text-align: center;
+    opacity: 0;
+  }
+  #banner.show { animation: bannerin 2.6s ease-out forwards; }
+  #banner .stage-name {
+    font-size: 54px; font-weight: 900; letter-spacing: 1px; color: #fff;
+    -webkit-text-stroke: 2px rgba(43, 52, 80, 0.4);
+    text-shadow: 0 6px 30px rgba(255, 150, 60, 0.8);
+  }
+  #banner .stage-sub {
+    font-size: 20px; font-weight: 800; color: #fff; margin-top: 6px;
+    background: linear-gradient(120deg, #ffb520, #ff7ac8);
+    border-radius: 999px; padding: 4px 20px; display: inline-block;
+    box-shadow: 0 6px 20px rgba(255, 130, 170, 0.55);
+  }
+  @keyframes bannerin {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    10%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    18%  { transform: translate(-50%, -50%) scale(1); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(1.02); }
+  }
+  #flash {
+    position: fixed; inset: 0; z-index: 18; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,240,200,0.6));
+    opacity: 0;
+  }
+  #flash.show { animation: flashin 0.9s ease-out forwards; }
+  @keyframes flashin { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+
+  #gameover {
+    position: fixed; left: 50%; top: 46%; transform: translate(-50%, -50%);
+    z-index: 22; text-align: center; padding: 26px 40px;
+  }
+  #gameover h2 { font-size: 34px; font-weight: 900; color: #ff5d73; margin-bottom: 6px; }
+  #gameover p { font-size: 14px; font-weight: 600; opacity: 0.8; margin-bottom: 4px; }
+  #gameover .hintline { font-size: 12px; opacity: 0.65; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="cells"></div>
+  <div id="fx"></div>
+
+  <header id="hud-top">
+    <div id="brand" class="panel">
+      <h1>Skylark Rise</h1>
+      <span id="stage-chip">Stage 1 · Sunrise Meadow</span>
+    </div>
+    <div id="stats" class="panel">
+      <div class="stat"><label>Score</label><span id="score">0</span></div>
+      <div class="stat"><label>Best</label><span id="best">0</span></div>
+      <div class="stat" id="mult-stat"><label>Multiplier</label><span id="mult">×1</span></div>
+    </div>
+    <div id="actions" class="panel">
+      <button id="new-game" data-testid="new-game" type="button">New Game</button>
+      <button id="reset-view" type="button">Reset View</button>
+      <button id="mute" type="button" aria-label="toggle sound">🔊</button>
+    </div>
+  </header>
+
+  <aside id="ledger" class="panel">
+    <h2>Gem Ledger</h2>
+    <ol id="ledger-rows"></ol>
+    <div id="featured-callout"></div>
+    <div id="mult-note"></div>
+  </aside>
+
+  <aside id="queue" class="panel">
+    <h2>Next Drops</h2>
+    <div id="peek"></div>
+    <div id="favoured-note"></div>
+  </aside>
+
+  <div id="flash"></div>
+  <div id="banner" hidden></div>
+  <div id="gameover" class="panel" hidden>
+    <h2>Out of moves!</h2>
+    <p>The winds have settled — no swap can make a match.</p>
+    <p class="hintline">Press <strong>New Game</strong> above to launch again.</p>
+  </div>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

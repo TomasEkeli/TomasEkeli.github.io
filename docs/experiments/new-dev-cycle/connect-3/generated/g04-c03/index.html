@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Starfall — Crystal Match</title>
+<style>
+  :root {
+    --bg-deep: #05061a;
+    --bg-mid: #0c0f2e;
+    --panel: rgba(18, 21, 54, 0.72);
+    --panel-border: rgba(140, 170, 255, 0.35);
+    --accent: #ffb454; /* warm accent per prior look/feel notes */
+    --accent-glow: rgba(255, 180, 84, 0.55);
+    --ink: #eef1ff;
+    --ink-dim: #9aa3d6;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(ellipse at 20% 15%, #131a45 0%, transparent 55%),
+                radial-gradient(ellipse at 82% 78%, #1c1050 0%, transparent 50%),
+                linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 60%, #04030f 100%);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Starfield backdrop: layered small dots via repeating radial-gradients,
+     each layer drifting at a different speed for parallax depth. */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .stars::before, .stars::after, .stars .layer3 {
+    content: "";
+    position: absolute;
+    inset: -10%;
+    background-repeat: repeat;
+  }
+  .stars::before {
+    background-image:
+      radial-gradient(1.6px 1.6px at 12% 22%, #ffffff 100%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 38% 65%, #cfe0ff 100%, transparent 60%),
+      radial-gradient(1.8px 1.8px at 70% 15%, #ffffff 100%, transparent 60%),
+      radial-gradient(1.1px 1.1px at 85% 55%, #b9c8ff 100%, transparent 60%),
+      radial-gradient(1.4px 1.4px at 55% 85%, #ffffff 100%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 25% 90%, #cfe0ff 100%, transparent 60%),
+      radial-gradient(1.6px 1.6px at 92% 30%, #ffffff 100%, transparent 60%);
+    background-size: 340px 340px;
+    animation: driftA 90s linear infinite;
+    opacity: 0.9;
+  }
+  .stars::after {
+    background-image:
+      radial-gradient(1px 1px at 8% 40%, #9fb4ff 100%, transparent 60%),
+      radial-gradient(1.3px 1.3px at 48% 12%, #ffffff 100%, transparent 60%),
+      radial-gradient(1px 1px at 66% 72%, #9fb4ff 100%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 30% 55%, #ffffff 100%, transparent 60%),
+      radial-gradient(1px 1px at 90% 88%, #9fb4ff 100%, transparent 60%),
+      radial-gradient(1.4px 1.4px at 78% 8%, #ffffff 100%, transparent 60%);
+    background-size: 260px 260px;
+    animation: driftB 130s linear infinite reverse;
+    opacity: 0.7;
+  }
+
+  @keyframes driftA {
+    from { transform: translate3d(0,0,0); }
+    to   { transform: translate3d(-340px,-170px,0); }
+  }
+  @keyframes driftB {
+    from { transform: translate3d(0,0,0); }
+    to   { transform: translate3d(260px,-260px,0); }
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  header.hud {
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    justify-content: space-between;
+    width: min(90vw, 560px);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    background: linear-gradient(90deg, #cfe0ff, var(--accent) 60%, #ffe1b0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(140, 170, 255, 0.25);
+  }
+
+  .score-box {
+    text-align: right;
+    line-height: 1.1;
+  }
+  .score-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  #score-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+    text-shadow: 0 0 14px var(--accent-glow);
+  }
+
+  .board-shell {
+    position: relative;
+    padding: 14px;
+    border-radius: 22px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    box-shadow:
+      0 25px 60px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 0 70px rgba(90, 120, 255, 0.12);
+    backdrop-filter: blur(6px);
+  }
+
+  #board {
+    --rows: 8;
+    --cols: 8;
+    position: relative;
+    display: grid;
+    grid-template-rows: repeat(var(--rows), 1fr);
+    grid-template-columns: repeat(var(--cols), 1fr);
+    width: min(88vw, 512px);
+    height: min(88vw, 512px);
+    gap: 4px;
+    border-radius: 14px;
+    background: linear-gradient(160deg, #0a0e2a, #050615 70%);
+    padding: 6px;
+    box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.6);
+  }
+
+  .cell {
+    position: relative;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .gem {
+    position: absolute;
+    inset: 6%;
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+    animation: idle-life var(--idle-dur, 3.2s) ease-in-out var(--idle-delay, 0s) infinite;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.55));
+  }
+  .gem:active { cursor: grabbing; }
+
+  @keyframes idle-life {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    45% { transform: scale(1.045) rotate(-2.5deg); }
+    55% { transform: scale(1.03) rotate(2deg); }
+  }
+
+  .gem-shape {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  .gem-facet {
+    filter: drop-shadow(0 0 6px var(--gem-glow)) drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+  }
+
+  .gem-highlight {
+    fill: rgba(255, 255, 255, 0.85);
+    opacity: 0.55;
+    filter: blur(1.5px);
+  }
+
+  /* Sparkle glint sweep across each gem, staggered by idle-delay so the
+     whole board doesn't flash in unison. */
+  .gem::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 48%, transparent 62%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    animation: glint-sweep calc(var(--idle-dur, 3.2s) * 2) ease-in-out var(--idle-delay, 0s) infinite;
+    pointer-events: none;
+  }
+  @keyframes glint-sweep {
+    0%, 70%, 100% { opacity: 0; transform: translateX(-40%); }
+    78% { opacity: 0.9; transform: translateX(0%); }
+    86% { opacity: 0; transform: translateX(40%); }
+  }
+
+  .gem-clearing {
+    animation: none !important;
+  }
+  .gem-clearing .gem-facet,
+  .gem-clearing .gem-highlight {
+    animation: clear-flash 0.22s ease-out forwards;
+  }
+  .gem-clearing::after { display: none; }
+  @keyframes clear-flash {
+    0% { opacity: 1; transform: scale(1); }
+    55% { opacity: 1; transform: scale(1.35); filter: brightness(2.2); }
+    100% { opacity: 0; transform: scale(0.2); }
+  }
+
+  .gem-dropping, .gem-refill {
+    animation-play-state: paused; /* pause idle pazzazz while falling */
+  }
+
+  /* Floating "+N" score pop, anchored to the board, not the whole page —
+     the board itself must never move. */
+  .gain-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gain-pop {
+    position: absolute;
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow:
+      0 0 12px var(--accent-glow),
+      0 0 32px rgba(255, 180, 84, 0.5),
+      0 2px 2px rgba(0,0,0,0.6);
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+    letter-spacing: 0.02em;
+  }
+  .gain-pop-run {
+    animation: gain-float 1.3s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  }
+  @keyframes gain-float {
+    0% { opacity: 0; transform: translateY(20px) scale(0.5); }
+    18% { opacity: 1; transform: translateY(-10px) scale(1.15); }
+    32% { transform: translateY(-18px) scale(1); }
+    100% { opacity: 0; transform: translateY(-90px) scale(1.05); }
+  }
+
+  footer.tip {
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    text-align: center;
+    max-width: 480px;
+    opacity: 0.8;
+  }
+
+  @media (max-width: 480px) {
+    header.hud { width: 92vw; }
+  }
+</style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <div class="stage">
+    <header class="hud">
+      <h1>Starfall</h1>
+      <div class="score-box">
+        <div class="score-label">Score</div>
+        <div id="score-value">0</div>
+      </div>
+    </header>
+
+    <div class="board-shell">
+      <div id="board" role="grid" aria-label="Match-3 board"></div>
+      <div class="gain-layer" id="gain-layer" aria-hidden="true"></div>
+    </div>
+
+    <footer class="tip">Drag a crystal into a neighbour to swap. Match 3 or more of the same shape to clear them.</footer>
+  </div>
+
+  <script type="module" src="./render.js"></script>
+</body>
+</html>

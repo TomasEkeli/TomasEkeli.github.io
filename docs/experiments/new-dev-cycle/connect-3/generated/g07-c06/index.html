@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Tomb of Radiant Match</title>
+<style>
+  :root {
+    --gold: #e8c15c;
+    --gold-bright: #ffe08a;
+    --lapis: #2b4f9e;
+    --lapis-bright: #4d7ed6;
+    --sand: #c9a06a;
+    --ember: #ff8c31;
+    --stone-dark: #1a1410;
+    --stone-mid: #2c2118;
+    --panel-bg: rgba(20, 15, 10, 0.72);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+    color: #f3e3c2;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 1.25rem 1rem 3rem;
+    position: relative;
+    background: #0c0805;
+  }
+
+  /* ---------- Backdrop: two crossfading stage layers ---------- */
+  .backdrop-layer {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+    pointer-events: none;
+  }
+  .backdrop-layer.active { opacity: 1; }
+
+  .backdrop-layer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 8%, rgba(255, 190, 110, 0.35), transparent 38%),
+      radial-gradient(ellipse at 82% 14%, rgba(255, 150, 60, 0.28), transparent 34%),
+      var(--stage-gradient, linear-gradient(#2c2118, #0c0805));
+  }
+
+  .backdrop-layer::after {
+    /* carved hieroglyph texture: faint repeating glyph dashes/dots */
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+    mix-blend-mode: overlay;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(255,220,160,0.12) 0 2px, transparent 2px 46px),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.35) 0 3px, transparent 3px 64px),
+      radial-gradient(circle at 10% 20%, rgba(255,220,160,0.25) 0 4px, transparent 5px),
+      radial-gradient(circle at 30% 60%, rgba(255,220,160,0.2) 0 3px, transparent 4px),
+      radial-gradient(circle at 70% 30%, rgba(255,220,160,0.2) 0 3px, transparent 4px),
+      radial-gradient(circle at 85% 75%, rgba(255,220,160,0.22) 0 4px, transparent 5px),
+      radial-gradient(circle at 50% 85%, rgba(255,220,160,0.18) 0 3px, transparent 4px);
+    background-size: 100% 100%;
+  }
+
+  .dust-field {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .mote {
+    position: absolute;
+    bottom: -5%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 224, 160, 0.9), rgba(255, 224, 160, 0));
+    animation: drift linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.5; }
+    100% { transform: translate(var(--dx, 30px), -110vh) scale(0.6); opacity: 0; }
+  }
+
+  .torch-glow {
+    position: fixed;
+    top: -6%;
+    width: 26vw;
+    max-width: 260px;
+    height: 26vw;
+    max-height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,170,80,0.55), rgba(255,120,40,0.12) 55%, transparent 70%);
+    filter: blur(2px);
+    z-index: -1;
+    pointer-events: none;
+    animation: flicker 3.6s ease-in-out infinite;
+  }
+  .torch-glow.left { left: -6%; animation-delay: 0.4s; }
+  .torch-glow.right { right: -6%; animation-delay: 1.1s; }
+  @keyframes flicker {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    30% { opacity: 0.95; transform: scale(1.04); }
+    50% { opacity: 0.6; transform: scale(0.97); }
+    75% { opacity: 0.9; transform: scale(1.02); }
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    text-align: center;
+    margin-bottom: 0.6rem;
+    z-index: 1;
+  }
+
+  h1 {
+    margin: 0.2rem 0 0.1rem;
+    font-size: clamp(1.5rem, 4vw, 2.3rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold) 55%, #a97a2c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  }
+  .subtitle {
+    color: var(--lapis-bright);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+  }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    z-index: 1;
+  }
+  .hud-tile {
+    background: var(--panel-bg);
+    border: 1px solid rgba(232, 193, 92, 0.35);
+    border-radius: 0.6rem;
+    padding: 0.4rem 0.85rem;
+    min-width: 5.5rem;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .hud-tile .label {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sand);
+    opacity: 0.85;
+  }
+  .hud-tile .value {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--gold-bright);
+  }
+  .hud-tile.multiplier .value { color: var(--ember); }
+  .hud-tile.best .value { color: var(--lapis-bright); }
+
+  .stage-banner-wrap {
+    position: relative;
+    height: 0;
+    z-index: 1;
+  }
+
+  /* ---------- Featured gem callout ---------- */
+  .featured-callout {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 auto 0.6rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(232,193,92,0.18), rgba(232,193,92,0.05));
+    border: 1px solid rgba(232, 193, 92, 0.55);
+    box-shadow: 0 0 18px rgba(232, 193, 92, 0.25);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    z-index: 1;
+    animation: pulseGlow 2.4s ease-in-out infinite;
+  }
+  .featured-callout.on { display: inline-flex; }
+  .featured-callout .swatch {
+    width: 1.4rem;
+    height: 1.4rem;
+    flex: none;
+  }
+  /* Neutralize the .gem class's cell-relative absolute positioning so it can
+     sit as a normal small inline preview inside the featured-gem callout.
+     (Width/height stay owned by `.featured-callout .swatch` above — do not
+     redeclare them here, they'd tie in specificity and fight by source order.) */
+  .gem.swatch {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
+    animation: none;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(232,193,92,0.2); }
+    50% { box-shadow: 0 0 26px rgba(232,193,92,0.5); }
+  }
+
+  /* ---------- Board ---------- */
+  .board-frame {
+    position: relative;
+    padding: 0.7rem;
+    border-radius: 1rem;
+    background: linear-gradient(155deg, #3a2c1c, #1c140c 60%, #0e0a06);
+    border: 3px solid rgba(232, 193, 92, 0.55);
+    box-shadow:
+      0 22px 45px rgba(0,0,0,0.65),
+      0 0 0 6px rgba(0,0,0,0.35) inset,
+      0 0 40px rgba(255, 150, 60, 0.12);
+    z-index: 1;
+  }
+  .board-frame::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 1rem;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--gold-bright), var(--lapis) 40%, var(--gold) 75%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  #board {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: min(92vw, 512px);
+    height: min(92vw, 512px);
+    gap: 3px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 0.6rem;
+    touch-action: none;
+  }
+
+  .cell {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.35));
+    border-radius: 0.35rem;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 2px 6px rgba(0,0,0,0.55);
+    overflow: visible;
+    cursor: grab;
+  }
+  .cell.hint-pulse .gem { animation: hintPulse 1.1s ease-in-out infinite; }
+  @keyframes hintPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+    50% { transform: translate(-50%, -50%) scale(1.12); filter: brightness(1.5); }
+  }
+
+  .cell.rejected .gem { animation: rejectShake 0.32s ease; }
+  @keyframes rejectShake {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0); }
+    25% { transform: translate(-56%, -50%) rotate(-6deg); }
+    75% { transform: translate(-44%, -50%) rotate(6deg); }
+  }
+
+  .gem.clearing-flash {
+    animation: clearFlash 0.2s ease-in-out forwards;
+  }
+  @keyframes clearFlash {
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.55)) brightness(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.35);
+      filter: drop-shadow(0 0 14px rgba(255,230,160,0.95)) brightness(2.2);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(0.15);
+      opacity: 0;
+      filter: drop-shadow(0 0 18px rgba(255,230,160,1)) brightness(2.6);
+    }
+  }
+
+  .gem {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 84%;
+    height: 84%;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.55));
+    animation: idleFloat 3.4s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes idleFloat {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    50% { transform: translate(-50%, -52%) rotate(2.5deg) scale(1.015); }
+  }
+
+  .gem .facet {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .gem .shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 22%);
+    mix-blend-mode: screen;
+    opacity: 0.85;
+    animation: shineSweep 5s ease-in-out infinite;
+  }
+  @keyframes shineSweep {
+    0%, 100% { transform: translateX(-20%); opacity: 0.5; }
+    50% { transform: translateX(20%); opacity: 0.9; }
+  }
+
+  .featured-ring {
+    position: absolute;
+    inset: -26%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,224,138,0.5) 0%, rgba(255,180,90,0.22) 48%, transparent 74%);
+    box-shadow: 0 0 26px 8px rgba(255, 200, 100, 0.55);
+    animation: featuredRing 1.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .featured-ring::before {
+    content: '';
+    position: absolute;
+    inset: 14%;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 226, 150, 0.95);
+    animation: featuredSpin 5s linear infinite;
+  }
+  .featured-ring::after {
+    content: '\2726';
+    position: absolute;
+    top: -0.35em;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85em;
+    color: var(--gold-bright);
+    text-shadow: 0 0 6px rgba(255,210,120,0.9);
+    animation: featuredSpark 1.5s ease-in-out infinite;
+  }
+  @keyframes featuredRing {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.14); }
+  }
+  @keyframes featuredSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes featuredSpark {
+    0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(0.85); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+  }
+
+  /* floating tile layer for drop/swap animation */
+  #anim-layer {
+    position: absolute;
+    inset: 0.7rem;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .flying-tile {
+    position: absolute;
+    width: var(--cw);
+    height: var(--ch);
+  }
+
+  /* ---------- floating score feedback ---------- */
+  #feedback-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .float-gain {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    transform: translate(-50%, 0);
+    font-weight: 800;
+    font-size: 2.1rem;
+    color: var(--gold-bright);
+    text-shadow: 0 0 10px rgba(255,200,80,0.9), 0 2px 4px rgba(0,0,0,0.8);
+    animation: floatUp 1.5s ease-out forwards;
+    white-space: nowrap;
+  }
+  .float-gain .mult-tag {
+    display: block;
+    font-size: 1rem;
+    color: var(--ember);
+    text-align: center;
+  }
+  .float-gain .bonus-tag {
+    display: block;
+    font-size: 1rem;
+    color: var(--lapis-bright);
+    text-align: center;
+    text-shadow: 0 0 8px rgba(120,170,255,0.9);
+  }
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translate(-50%, 20px) scale(0.7); }
+    15% { opacity: 1; transform: translate(-50%, -10px) scale(1.08); }
+    30% { transform: translate(-50%, -18px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
+  }
+
+  /* ---------- stage transition banner ---------- */
+  #stage-banner {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    z-index: 50;
+    text-align: center;
+    padding: 1rem 2.4rem;
+    border: 2px solid var(--gold-bright);
+    border-radius: 0.75rem;
+    background: rgba(10, 7, 4, 0.88);
+    box-shadow: 0 0 60px rgba(255, 200, 100, 0.55), 0 20px 50px rgba(0,0,0,0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  #stage-banner.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  #stage-banner .stage-num {
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    color: var(--lapis-bright);
+    text-transform: uppercase;
+  }
+  #stage-banner .stage-name {
+    font-size: clamp(1.4rem, 5vw, 2.4rem);
+    color: var(--gold-bright);
+    text-shadow: 0 0 20px rgba(255,200,100,0.8);
+    letter-spacing: 0.06em;
+  }
+  #stage-flash {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(255,224,160,0.9), rgba(255,150,60,0.2) 45%, transparent 70%);
+    opacity: 0;
+    z-index: 49;
+    pointer-events: none;
+  }
+  #stage-flash.flash { animation: bigFlash 1.1s ease-out; }
+  @keyframes bigFlash {
+    0% { opacity: 0; }
+    12% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  /* ---------- footer / controls ---------- */
+  .controls {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    margin-top: 1rem;
+    z-index: 1;
+  }
+  button#new-game {
+    font-family: inherit;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.4rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--gold-bright);
+    background: linear-gradient(180deg, #4a3316, #2a1c0c);
+    color: var(--gold-bright);
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button#new-game:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.55), 0 0 16px rgba(255,200,100,0.35);
+  }
+  button#new-game:active { transform: translateY(0); }
+
+  .idle-note {
+    font-size: 0.72rem;
+    color: var(--sand);
+    opacity: 0.75;
+  }
+
+  /* ---------- game over overlay ---------- */
+  #game-over {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 2, 1, 0.82);
+    z-index: 60;
+    pointer-events: none;
+  }
+  #game-over.show { display: flex; }
+  .go-panel {
+    text-align: center;
+    padding: 2rem 2.4rem;
+    border-radius: 1rem;
+    border: 2px solid var(--gold-bright);
+    background: linear-gradient(160deg, #241a10, #0d0904);
+    box-shadow: 0 0 60px rgba(255,180,90,0.35), 0 20px 60px rgba(0,0,0,0.7);
+  }
+  .go-panel h2 {
+    margin: 0 0 0.4rem;
+    color: var(--gold-bright);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .go-panel p { margin: 0.2rem 0 1rem; color: var(--sand); }
+  .go-panel .go-score { color: var(--lapis-bright); font-weight: 700; }
+  .go-panel .go-hint { font-size: 0.8rem; opacity: 0.8; }
+
+  button#new-game.urging {
+    animation: urgeGlow 1s ease-in-out infinite;
+  }
+  @keyframes urgeGlow {
+    0%, 100% { box-shadow: 0 6px 14px rgba(0,0,0,0.5), 0 0 8px rgba(255,200,100,0.3); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 26px rgba(255,200,100,0.9); }
+  }
+
+  /* ---------- gem shapes (per colour type; colour-blind safe via silhouette) ---------- */
+
+  /* type 0 — Scarab (hexagon), turquoise, cheap+exponential */
+  .gem.t0 .facet.base {
+    clip-path: polygon(50% 2%, 93% 26%, 93% 74%, 50% 98%, 7% 74%, 7% 26%);
+    background:
+      radial-gradient(circle at 32% 24%, rgba(255,255,255,0.85), rgba(255,255,255,0) 40%),
+      linear-gradient(150deg, #6ee7d8, #0e8f7f 55%, #075e53);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.35);
+  }
+  .gem.t0 .facet.line {
+    position: absolute; left: 50%; top: 14%; width: 2px; height: 72%;
+    background: rgba(6, 60, 52, 0.55); transform: translateX(-50%);
+  }
+  .gem.t0 .shine { clip-path: polygon(50% 2%, 93% 26%, 93% 74%, 50% 98%, 7% 74%, 7% 26%); }
+
+  /* type 1 — Ankh, gold, expensive+flat */
+  /* border-width does not accept percentages, so the loop is built as a
+     donut (filled circle + a smaller "hole" circle) rather than a ring
+     border — that keeps it proportional to the gem at any size. */
+  .gem.t1 .facet.loopOuter {
+    position: absolute; left: 50%; top: 2%; width: 56%; height: 48%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 28%, #fff8e0, #f0cc72 45%, #9a7220 85%);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  }
+  .gem.t1 .facet.loopHole {
+    position: absolute; left: 50%; top: 11%; width: 28%; height: 24%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: #1c150d;
+  }
+  .gem.t1 .facet.bar {
+    position: absolute; left: 50%; top: 38%; width: 34%; height: 60%;
+    transform: translateX(-50%);
+    background: linear-gradient(160deg, #fff2c2, #e8c15c 45%, #9a7220);
+    border-radius: 0 0 45% 45% / 0 0 60% 60%;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.35);
+  }
+  .gem.t1 .facet.crossbar {
+    position: absolute; left: 50%; top: 58%; width: 84%; height: 18%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(160deg, #fff2c2, #e8c15c 45%, #9a7220);
+    border-radius: 30%;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.35);
+  }
+  .gem.t1 .shine { clip-path: polygon(30% 0, 70% 0, 70% 100%, 30% 100%); opacity: 0.5; }
+
+  /* type 2 — Eye of Horus, lapis blue, grows each match */
+  .gem.t2 .facet.base {
+    clip-path: polygon(2% 50%, 26% 20%, 74% 20%, 98% 50%, 74% 80%, 26% 80%);
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 40%),
+      linear-gradient(150deg, #6f93e8, #24418f 55%, #101f4a);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+  }
+  .gem.t2 .facet.pupil {
+    position: absolute; left: 50%; top: 50%; width: 26%; height: 26%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 40% 35%, #1c1004, #000);
+    border-radius: 50%;
+  }
+  .gem.t2 .facet.tail {
+    position: absolute; left: 14%; top: 62%; width: 26%; height: 22%;
+    background: linear-gradient(160deg, #6f93e8, #172a63);
+    clip-path: polygon(0 0, 100% 40%, 30% 100%);
+  }
+  .gem.t2 .shine { clip-path: polygon(2% 50%, 26% 20%, 74% 20%, 98% 50%, 74% 80%, 26% 80%); }
+
+  /* type 3 — Pyramid, ruby red, rarity-based */
+  .gem.t3 .facet.base {
+    clip-path: polygon(50% 4%, 96% 92%, 4% 92%);
+    background:
+      radial-gradient(circle at 40% 30%, rgba(255,255,255,0.75), rgba(255,255,255,0) 40%),
+      linear-gradient(160deg, #ff8b7d, #c1352a 55%, #6e1710);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+  }
+  .gem.t3 .facet.line1 {
+    position: absolute; left: 50%; top: 4%; width: 2px; height: 88%;
+    background: rgba(90, 15, 10, 0.5); transform: translateX(-50%) rotate(0deg);
+  }
+  .gem.t3 .facet.line2 {
+    position: absolute; left: 30%; top: 40%; width: 44%; height: 2px;
+    background: rgba(90, 15, 10, 0.4);
+  }
+  .gem.t3 .shine { clip-path: polygon(50% 4%, 96% 92%, 4% 92%); }
+
+  /* type 4 — Lotus, emerald green, flat cheap */
+  .gem.t4 .facet.base {
+    clip-path: polygon(50% 0%, 61% 20%, 82% 10%, 78% 33%, 100% 40%, 82% 55%,
+                        95% 75%, 72% 70%, 68% 92%, 50% 76%, 32% 92%, 28% 70%,
+                        5% 75%, 18% 55%, 0% 40%, 22% 33%, 18% 10%, 39% 20%);
+    background:
+      radial-gradient(circle at 40% 32%, rgba(255,255,255,0.75), rgba(255,255,255,0) 42%),
+      linear-gradient(150deg, #86e0ab, #1f9f5c 55%, #0c5c34);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.35);
+  }
+  .gem.t4 .shine {
+    clip-path: polygon(50% 0%, 61% 20%, 82% 10%, 78% 33%, 100% 40%, 82% 55%,
+                        95% 75%, 72% 70%, 68% 92%, 50% 76%, 32% 92%, 28% 70%,
+                        5% 75%, 18% 55%, 0% 40%, 22% 33%, 18% 10%, 39% 20%);
+  }
+
+  /* type 5 — Sun Disk (Ra), amber, stage-scaled */
+  .gem.t5 .facet.rays {
+    position: absolute; inset: 0;
+    background: conic-gradient(from 0deg,
+      #ffd479 0deg 12deg, transparent 12deg 30deg,
+      #ffd479 30deg 42deg, transparent 42deg 60deg,
+      #ffd479 60deg 72deg, transparent 72deg 90deg,
+      #ffd479 90deg 102deg, transparent 102deg 120deg,
+      #ffd479 120deg 132deg, transparent 132deg 150deg,
+      #ffd479 150deg 162deg, transparent 162deg 180deg,
+      #ffd479 180deg 192deg, transparent 192deg 210deg,
+      #ffd479 210deg 222deg, transparent 222deg 240deg,
+      #ffd479 240deg 252deg, transparent 252deg 270deg,
+      #ffd479 270deg 282deg, transparent 282deg 300deg,
+      #ffd479 300deg 312deg, transparent 312deg 330deg,
+      #ffd479 330deg 342deg, transparent 342deg 360deg);
+    border-radius: 50%;
+    opacity: 0.9;
+  }
+  .gem.t5 .facet.disc {
+    position: absolute; left: 50%; top: 50%; width: 62%; height: 62%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff4d6, #ffb703 55%, #b5720c);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.35), 0 0 10px rgba(255,180,80,0.6);
+  }
+  .gem.t5 .shine { clip-path: circle(31% at 50% 50%); }
+
+</style>
+</head>
+<body>
+  <div class="backdrop-layer" id="bg-a"></div>
+  <div class="backdrop-layer" id="bg-b"></div>
+  <div class="dust-field" id="dust-field"></div>
+  <div class="torch-glow left"></div>
+  <div class="torch-glow right"></div>
+
+  <header>
+    <h1>Tomb of Radiant Match</h1>
+    <div class="subtitle" id="stage-subtitle">Antechamber &mdash; the torches are lit</div>
+  </header>
+
+  <div class="hud">
+    <div class="hud-tile">
+      <span class="label">Score</span>
+      <span class="value" id="hud-score">0</span>
+    </div>
+    <div class="hud-tile best">
+      <span class="label">Best</span>
+      <span class="value" id="hud-best">0</span>
+    </div>
+    <div class="hud-tile multiplier">
+      <span class="label">Multiplier</span>
+      <span class="value" id="hud-mult">&times;1</span>
+    </div>
+    <div class="hud-tile">
+      <span class="label">Stage</span>
+      <span class="value" id="hud-stage">0</span>
+    </div>
+  </div>
+
+  <div class="featured-callout" id="featured-callout">
+    <div class="gem swatch" id="featured-swatch">
+      <div class="facet base"></div>
+    </div>
+    <span id="featured-text">Featured: &mdash;</span>
+  </div>
+
+  <div class="board-frame">
+    <div id="board" role="grid" aria-label="Match-3 board"></div>
+    <div id="anim-layer"></div>
+    <div id="feedback-layer"></div>
+  </div>
+
+  <div class="controls">
+    <button id="new-game" data-testid="new-game" type="button">New Game</button>
+    <span class="idle-note">stalled? watch for a subtle glow&hellip;</span>
+  </div>
+
+  <div id="stage-flash"></div>
+  <div id="stage-banner">
+    <div class="stage-num">Stage <span id="banner-num">0</span></div>
+    <div class="stage-name" id="banner-name">Antechamber</div>
+  </div>
+
+  <div id="game-over">
+    <div class="go-panel">
+      <h2>The Torches Gutter Out</h2>
+      <p>No moves remain among the relics.</p>
+      <p>Final score: <span class="go-score" id="go-score">0</span></p>
+      <p class="go-hint">Use the New Game torch below to begin again.</p>
+    </div>
+  </div>
+
+  <script type="module" src="render.js"></script>
+</body>
+</html>
