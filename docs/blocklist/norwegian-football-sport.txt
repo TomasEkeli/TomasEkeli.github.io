@@ -7,6 +7,10 @@ nrk.no##.nrkno-header__promoted-categories-list-item:has(a[href="/sport/"])
 nrk.no##.kur-room-wrapper:has(a[href*="vm"], a[href*="fotball"])
 nrk.no##.kur-floor:has(script[src*="sport"])
 
+! NRK — blokker sportssider helt (fra morkcloud.com)
+||nrk.no/sport^
+||nrk.no/fotballvm2026^
+
 ! TV2 Sport, VM og videosnutter
 tv2.no##article:has(a[href*="sport"], a[href*="vm"], a[href*="video/asset"])
 tv2.no##section.klipplist
@@ -16,6 +20,17 @@ tv2.no##section.top-articles:has(a[href*="sport"])
 vg.no##article:has(a[href*="sport"], a[href*="Fotball"], a[href*="vm"])
 vg.no##astro-island:has(inline-integration[src*="Fotball"])
 vg.no##inline-integration
+
+! VG — blokker sport- og fotballsider helt (fra morkcloud.com)
+||vg.no/sport^
+||vg.no/fotball^
+||vglive.vg.no/fotball^
+
+! VG shopping, annonsørinnhold og minmote (reklame)
+||vg.no/shopping^
+||vg.no/annonsorinnhold^
+||minmote.no^
+vg.no##article:has(a[href*="/shopping"], a[href*="/annonsorinnhold"], a[href*="minmote.no"])
 
 ! VG betalte artikler
 vg.no##track-element[data-track-access-level*="Paid"]
