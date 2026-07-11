@@ -1,0 +1,37 @@
+
+! NRK — football og sport
+nrk.no##.kur-floor--fullbredde:has(dh-sportsbanner-v2)
+nrk.no##.kur-floor__title-text:has-text(/fotball|mesterskap|\b(VM|EM|OL|NM)\b/i):upward(.kur-floor)
+nrk.no##.kur-room:has(a[href*="/sport"], a[href*="fotball"], a[href*="bakrommet"], a[href*="gjettekonken"])
+nrk.no##.nrkno-header__promoted-categories-list-item:has(a[href="/sport/"])
+nrk.no##.kur-room-wrapper:has(a[href*="vm"], a[href*="fotball"])
+nrk.no##.kur-floor:has(script[src*="sport"])
+
+! TV2 Sport, VM og videosnutter
+tv2.no##article:has(a[href*="sport"], a[href*="vm"], a[href*="video/asset"])
+tv2.no##section.klipplist
+tv2.no##section.top-articles:has(a[href*="sport"])
+
+! VG sport og fotball
+vg.no##article:has(a[href*="sport"], a[href*="Fotball"], a[href*="vm"])
+vg.no##astro-island:has(inline-integration[src*="Fotball"])
+vg.no##inline-integration
+
+! VG betalte artikler
+vg.no##track-element[data-track-access-level*="Paid"]
+
+! dagbladet sport, hockey, vm, og litt reklame og visuelt støy
+dagbladet.no##article:has(a[href*="sport"], a[href*="hockey"], a[href*="\/ad\/"])
+dagbladet.no##div.row:has(a[href*="vm"])
+dagbladet.no##div.rolling-text-animated
+dagbladet.no##article[data-label="pluss"]
+dagbladet.no##iframe
+dagbladet.no##.kicker
+
+! https://dinside.dagbladet.no
+dinside.dagbladet.no##article.preview-link
+
+filternyheter.no##div.soft-paywall
+filternyheter.no##div.paywall
+filternyheter.no##.soft-paywall__container
+
